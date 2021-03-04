@@ -1,0 +1,955 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: PHC CI/CD
+Parameters:
+  # PipelineName:
+  #   Type: String
+  #   Description: Pipeline name
+  VpcId:
+    Type: 'AWS::EC2::VPC::Id'
+    Description: VpcId of an existing Virtual Private Cloud with access to the resources used by this pipeline
+    ConstraintDescription: Must be the VPC Id of an existing Virtual Private Cloud.
+  RepositoryName:
+    Type: String
+    Description: CodeCommit repository name where the source code is located
+  RepositoryBranchName:
+    Type: String
+    Default: master
+    Description: Repository branch to use
+  ApplicationName:
+    Type: String
+  # DeploymentGroupName:
+  #   Type: String
+  Environment:
+    Type: String
+  Region:
+    Type: String
+  RuntimeVersion:
+    Type: String
+  JobCreationLambdaName:
+    Type: String
+  PreprocessLambdaName:
+    Type: String
+  FeedbackLoopLambdaName:
+    Type: String
+  SageMakerPreprocessLambdaName:
+    Type: String
+  SageMakerPostprocessLambdaName:
+    Type: String
+  MathlibLayerName:
+    Type: String
+  NumpyLayerName:
+    Type: String
+  PandasLayerName:
+    Type: String
+  PreProcessLayerName:
+    Type: String
+  Suffix:
+    Type: String
+  SageMakerPrivateWorkTeamArn:
+    Type: String
+    Description: SageMaker Private Workforce - Private Team ARN
+  JobCreationLambdaHandler:
+    Type: String
+  PreprocessLambdaHandler:
+    Type: String
+  FeedbackLoopLambdaHandler:
+    Type: String
+  SageMakerPreprocessLambdaHandler:
+    Type: String
+  SageMakerPostprocessLambdaHandler:
+    Type: String
+  JobCreationLambdaZip:
+    Type: String
+  PreprocessLambdaZip:
+    Type: String
+  FeedbackLoopLambdaZip:
+    Type: String
+  SageMakerPreprocessLambdaZip:
+    Type: String
+  SageMakerPostprocessLambdaZip:
+    Type: String
+  JobCreationLambdaTimeOut:
+    Type: String
+  PreprocessLambdaTimeOut:
+    Type: String
+  FeedbackLoopLambdaTimeOut:
+    Type: String
+  SageMakerPreprocessLambdaTimeOut:
+    Type: String
+  SageMakerPostprocessLambdaTimeOut:
+    Type: String
+  JobCreationLambdaMemorySize:
+    Type: String
+  PreprocessLambdaMemorySize:
+    Type: String
+  FeedbackLoopLambdaMemorySize:
+    Type: String
+  SageMakerPreprocessLambdaMemorySize:
+    Type: String
+  SageMakerPostprocessLambdaMemorySize:
+    Type: String
+  DeploymentTargetAccount:
+    Type: String
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Pipeline parameters
+        Parameters:
+          # - PipelineName
+          - RepositoryName
+          - RepositoryBranchName
+          - RuntimeVersion
+          - JobCreationLambdaName
+          - PreprocessLambdaName
+          - FeedbackLoopLambdaName
+          - SageMakerPreprocessLambdaName
+          - SageMakerPostprocessLambdaName
+          - Suffix
+          - JobCreationLambdaZip
+          - PreprocessLambdaZip
+          - FeedbackLoopLambdaZip
+          - SageMakerPreprocessLambdaZip
+          - SageMakerPostprocessLambdaZip
+          - JobCreationLambdaTimeOut
+          - PreprocessLambdaTimeOut
+          - FeedbackLoopLambdaTimeOut
+          - SageMakerPreprocessLambdaTimeOut
+          - SageMakerPostprocessLambdaTimeOut
+          - JobCreationLambdaMemorySize
+          - PreprocessLambdaMemorySize
+          - FeedbackLoopLambdaMemorySize
+          - SageMakerPreprocessLambdaMemorySize
+          - SageMakerPostprocessLambdaMemorySize
+          - DeploymentTargetAccount
+          - JobCreationLambdaHandler
+          - PreprocessLambdaHandler
+          - FeedbackLoopLambdaHandler
+          - SageMakerPreprocessLambdaHandler
+          - SageMakerPostprocessLambdaHandler
+      - Label:
+          default: Deployment parameters
+        Parameters:  
+          # - DeploymentGroupName
+          - ApplicationName
+          - Region
+          - SageMakerPrivateWorkTeamArn
+      - Label:
+          default: Network parameters
+        Parameters:
+          - VpcId
+          # - AllowedCIDR
+    ParameterLabels:
+      VpcId:
+        default: "Which pre-existing VPC should this deployment use for VPC-aware resources?"
+      # PipelineName:
+      #   default: "How should this pipeline be called?"
+      RepositoryName:
+        default: "Which pre-existing CodeCommit repository this pipeline should monitor?"
+      RepositoryBranchName:
+        default: "Which branch CodePipeline should monitor for new commits?"
+      # DeploymentGroupName:
+        # default: "How should this deployment application deployment be called?"
+      ApplicationName:
+        default: "How should this application be called?"
+      Region:
+        default: "Which Region to use for this deployment?"
+      RuntimeVersion:
+        default: "Which Runtime engine use for the Lambda Functions?"
+      JobCreationLambdaName:
+        default: "How should the JobCreationLambda be called?"
+      PreprocessLambdaName:
+        default: "How should the PreprocessLambda be called?"
+      FeedbackLoopLambdaName:
+        default: "How should the FeedbackLoopLambda be called?"
+      SageMakerPreprocessLambdaName:
+        default: "How should the SageMakerPreprocessLambda be called?"
+      SageMakerPostprocessLambdaName:
+        default: "How should the SageMakerPostprocessLambda be called?"
+      SageMakerPrivateWorkTeamArn:
+        default: "What is the ARN of the SageMaker Private Workforce team?" 
+      Suffix:
+        default: "What is the naming suffix for this deployment?"
+      JobCreationLambdaZip:
+        default: "What is the build package for JobCreationLambda be called?"
+      PreprocessLambdaZip:
+        default: "What is the build package for PreprocessLambda be called?"
+      FeedbackLoopLambdaZip:
+        default: "What is the build package for FeedbackLoopLambda be called?"
+      SageMakerPreprocessLambdaZip:
+        default: "What is the build package for SageMakerPreprocessLambda be called?"
+      SageMakerPostprocessLambdaZip:
+        default: "What is the build package for SageMakerPostprocessLambda be called?"
+      DeploymentTargetAccount:
+        default: "What is the AccountId for the target AWS account for the deployment?"
+      JobCreationLambdaHandler:
+        default: "What is the value for JobCreationLambdaHandler?"
+      PreprocessLambdaHandler:
+        default: "What is the value for PreprocessLambdaHandler?"
+      FeedbackLoopLambdaHandler:
+        default: "What is the value for FeedbackLoopLambdaHandler?"
+      SageMakerPreprocessLambdaHandler:
+        default: "What is the value for SageMakerPreprocessLambdaHandler?"
+      SageMakerPostprocessLambdaHandler:
+        default: "What is the value for SageMakerPostprocessLambdaHandler?"     
+Resources:
+  ArtifactsEncryptionKey:
+    Type: 'AWS::KMS::Key'
+    Properties:
+      Description: Symmetric CMK for enryption/decryption of Pipeline artifacts
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: Allow IAM User permissions to manage the key
+          Effect: Allow
+          Principal:
+            AWS:
+              Fn::Join: [ '', [ 'arn:aws:iam::', Ref: 'AWS::AccountId', ':root' ] ]
+          Action: kms:*
+          Resource: '*'
+        - Sid: Allow Cloud Admins to manage the key
+          Effect: Allow
+          Principal:
+            AWS:
+              Fn::Join: [ '', [ 'arn:aws:iam::', Ref: 'AWS::AccountId', ':role/phsa-sso-admin' ] ]
+          Action:
+            - kms:Create*
+            - kms:Describe*
+            - kms:Enable*
+            - kms:List*
+            - kms:Put*
+            - kms:Update*
+            - kms:Revoke*
+            - kms:Disable*
+            - kms:Get*
+            - kms:Delete*
+            - kms:TagResource
+            - kms:UntagResource
+            - kms:ScheduleKeyDeletion
+            - kms:CancelKeyDeletion
+          Resource: '*'
+        - Sid: Allow use of the key
+          Effect: Allow
+          Principal:
+            AWS:
+              - Fn::GetAtt: [ CodePipelineServiceRole, Arn ]
+              - Fn::GetAtt: [ CodeBuildServiceRole, Arn ]
+          Action:
+          - kms:DescribeKey
+          - kms:Encrypt
+          - kms:Decrypt
+          - kms:ReEncrypt*
+          - kms:GenerateDataKey
+          - kms:GenerateDataKeyWithoutPlaintext
+          Resource: '*'
+  DataEncryptionKey:
+    Type: 'AWS::KMS::Key'
+    Properties:
+      Description: Symmetric CMK for enryption/decryption of application data
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: Allow IAM User permissions to manage the key
+          Effect: Allow
+          Principal:
+            AWS:
+              Fn::Join: [ '', [ 'arn:aws:iam::', Ref: 'AWS::AccountId', ':root' ] ]
+          Action: kms:*
+          Resource: '*'
+        - Sid: Allow Cloud Admins to manage the key
+          Effect: Allow
+          Principal:
+            AWS:
+              Fn::Join: [ '', [ 'arn:aws:iam::', Ref: 'AWS::AccountId', ':role/phsa-sso-admin' ] ]
+          Action:
+            - kms:Create*
+            - kms:Describe*
+            - kms:Enable*
+            - kms:List*
+            - kms:Put*
+            - kms:Update*
+            - kms:Revoke*
+            - kms:Disable*
+            - kms:Get*
+            - kms:Delete*
+            - kms:TagResource
+            - kms:UntagResource
+            - kms:ScheduleKeyDeletion
+            - kms:CancelKeyDeletion
+          Resource: '*'
+        - Sid: Allow use of the key
+          Effect: Allow
+          Principal:
+            AWS:
+              - Fn::GetAtt: [ PreProcessLambdaExecutionRole, Arn ]
+              - Fn::GetAtt: [ JobCreationLambdaExecutionRole, Arn ]
+              - Fn::GetAtt: [ FeedbackLoopLambdaExecutionRole, Arn ]
+          Action:
+          - kms:Decrypt
+          Resource: '*'
+  ArtifactsStoreBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+              KMSMasterKeyID:
+                Ref: ArtifactsEncryptionKey
+      VersioningConfiguration:
+        Status: Enabled
+  LandingBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+              KMSMasterKeyID:
+                Ref: DataEncryptionKey
+      VersioningConfiguration:
+        Status: Enabled
+  ProcessingBucketLogs:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: LogDeliveryWrite
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+              KMSMasterKeyID:
+                Ref: DataEncryptionKey
+  ProcessingBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+              KMSMasterKeyID:
+                Ref: DataEncryptionKey
+      VersioningConfiguration:
+        Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Ref ProcessingBucketLogs
+        LogFilePrefix: processing-logs
+  LambdaS3AccessPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      Description: Allow S3 access for associated principals
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+          - 's3:GetObject'
+          - 's3:GetObjectVersion'
+          - 's3:PutObject'
+          - 's3:PutObjectVersion'
+          - 's3:DeleteObject'
+          - 's3:DeleteObjectVersion'
+          - 's3:ListBucket'
+          Resource:
+          - Fn::GetAtt:  [ ProcessingBucket, Arn ]
+          - Fn::Join: [ '', [ !GetAtt ProcessingBucket.Arn, '/*' ]  ]
+        - Effect: Allow
+          Action:
+          - 's3:GetObject'
+          - 's3:GetObjectVersion'
+          - 's3:ListBucket'
+          Resource:
+          - Fn::GetAtt:  [ LandingBucket, Arn ]
+          - Fn::Join: [ '', [ !GetAtt LandingBucket.Arn, '/*' ]  ]
+      Roles:
+      - Ref: PreProcessLambdaExecutionRole
+      - Ref: JobCreationLambdaExecutionRole
+      - Ref: FeedbackLoopLambdaExecutionRole
+      - Ref: CodeBuildServiceRole
+  PreProcessLambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - lambda.amazonaws.com
+          Action:
+            - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  JobCreationLambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - lambda.amazonaws.com
+          Action:
+            - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+  FeedbackLoopLambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - lambda.amazonaws.com
+          Action:
+            - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  SageMakerPreprocessLambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - lambda.amazonaws.com
+          Action:
+            - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  SageMakerPostprocessLambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - lambda.amazonaws.com
+          Action:
+            - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  EventBridgeEventRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: EventBridgeEventPipelineExecution
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'codepipeline:StartPipelineExecution'
+                Resource:
+                  Fn::Join: [ '', [ 'arn:aws:codepipeline:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: CodePipeline ]  ]
+  CodePipelineServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      Description:
+        Fn::Join: [ '', [ 'AWS CodePipeline Service Role for', Ref: ApplicationName , Ref: Suffix] ]
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AWSCodePipeline_FullAccess'
+      Policies:
+        - PolicyName: CodePipelineRepositoryAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - codecommit:GetBranch
+                  - codecommit:GetCommit
+                  - codecommit:UploadArchive
+                  - codecommit:GetUploadArchiveStatus
+                Resource:
+                  Fn::Join: [ '', [ 'arn:aws:codecommit:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: RepositoryName ] ]
+        - PolicyName: CodePipelineBuildStage
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - codebuild:StartBuild
+                  - codebuild:BatchGetBuilds
+                Resource:
+                  Fn::Join: [ '', [ 'arn:aws:codebuild:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':project/', Ref: CodeBuildProject ] ]
+        - PolicyName: CodePipelineArtifactsStoreObjectAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:*
+                Resource: '*'
+  CodeBuildServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - 'codebuild.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: CodeBuildServiceRolePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'codecommit:GitPull'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 's3:GetObject'
+                  - 's3:GetObjectVersion'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 's3:PutObject'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 's3:GetBucketAcl'
+                  - 's3:GetBucketLocation'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - lambda:CreateFunction
+                  - lambda:UpdateFunctionCode
+                  - lambda:AddPermission
+                  - lambda:RemovePermission
+                  - lambda:GetFunction
+                  - lambda:UpdateFunctionConfiguration
+                Resource:
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: JobCreationLambdaName, Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: FeedbackLoopLambdaName , Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: PreprocessLambdaName , Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: SageMakerPreprocessLambdaName , Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: SageMakerPostprocessLambdaName , Ref: Suffix ]  ]
+              - Effect: Allow
+                Action:
+                  - lambda:PublishLayerVersion
+                  - lambda:ListLayerVersions
+                Resource:
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MathlibLayerName, Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: NumpyLayerName, Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PandasLayerName, Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PreProcessLayerName, Ref: Suffix ]  ]
+              - Effect: Allow
+                Action:
+                  - lambda:GetLayerVersion
+                Resource:
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MathlibLayerName, Ref: Suffix, ':', '*' ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: NumpyLayerName, Ref: Suffix, ':', '*' ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PandasLayerName, Ref: Suffix, ':', '*' ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PreProcessLayerName, Ref: Suffix, ':', '*' ]  ]
+                  - 'arn:aws:lambda:ca-central-1:580247275435:layer:LambdaInsightsExtension:*'
+                  - 'arn:aws:lambda:ca-central-1:778625758767:layer:AWSLambda-Python36-SciPy1x:*'
+                  - 'arn:aws:lambda:ca-central-1:778625758767:layer:AWSLambda-Python37-SciPy1x:*'
+              - Effect: Allow
+                Action:
+                  - 's3:PutBucketNotificationConfiguration'
+                  - 's3:PutBucketNotification'
+                Resource:
+                  - Fn::GetAtt:  [ LandingBucket, Arn ]
+                  - Fn::GetAtt:  [ ProcessingBucket, Arn ]
+              - Effect: Allow
+                Action:
+                  - 'iam:PassRole'
+                Resource:
+                  - Fn::GetAtt: [ JobCreationLambdaExecutionRole, Arn ]
+                  - Fn::GetAtt: [ FeedbackLoopLambdaExecutionRole, Arn ]
+                  - Fn::GetAtt: [ PreProcessLambdaExecutionRole, Arn ]
+                  - Fn::GetAtt: [ SageMakerPreprocessLambdaExecutionRole, Arn ]
+                  - Fn::GetAtt: [ SageMakerPostprocessLambdaExecutionRole, Arn ]
+  CodeDeployServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - 'codedeploy.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda'
+  SageMakerGroundTruthExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - sagemaker.amazonaws.com
+          Action:
+            - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+  CodeBuildProject:
+    Type: 'AWS::CodeBuild::Project'
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      # Artifacts:
+      #   Name:
+      #     Ref: ApplicationName
+      #   Type: S3
+      #   location:
+      #     Ref: ArtifactsStoreBucket
+      #   Path: ''
+      #   OverrideArtifactName: true
+      #   Packaging: NONE
+      #   NamespaceType: NONE
+      #   encryptionDisabled: false
+      # SecondaryArtifacts:
+      #   - artifactIdentifier: job_creation
+      #     Name:
+      #       Ref: ApplicationName
+      #     Type: S3
+      #     location:
+      #       Ref: ArtifactsStoreBucket
+      #     packaging: NONE
+      #     namespaceType: NONE
+      #     encryptionDisabled: false
+      #     overrideArtifactName: true
+      #     path: ''
+      #   - artifactIdentifier: loop
+      #     Name:
+      #       Ref: ApplicationName
+      #     Type: S3
+      #     location:
+      #       Ref: ArtifactsStoreBucket
+      #     packaging: NONE
+      #     namespaceType: NONE
+      #     encryptionDisabled: false
+      #     overrideArtifactName: true
+      #     path: ''
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: GROUNDTRUTH_ROLE
+            Value:
+              Fn::GetAtt: [ SageMakerGroundTruthExecutionRole, Arn ]
+          - Name: S3_raw
+            Value:
+              Ref: LandingBucket
+          - Name: patient_bucket
+            Value:
+              Ref: ProcessingBucket
+          - Name: patient_folder
+            Value: "source-csv"
+          - Name: RUNTIME
+            Value: !Ref RuntimeVersion
+          - Name: REGION
+            Value: !Ref Region
+          - Name: JobCreationLambdaName
+            Value: !Ref JobCreationLambdaName
+          - Name: PreprocessLambdaName
+            Value: !Ref PreprocessLambdaName
+          - Name: FeedbackLoopLambdaName
+            Value: !Ref FeedbackLoopLambdaName
+          - Name: ProcessingBucketName
+            Value: !Ref ProcessingBucket
+          - Name: ProcessingBucketArn
+            Value:
+              Fn::GetAtt:  [ ProcessingBucket, Arn ]
+          - Name: LandingBucketName
+            Value: !Ref LandingBucket
+          - Name: LandingBucketArn
+            Value:
+              Fn::GetAtt:  [ LandingBucket, Arn ]
+          # - Name: ArtifactsStoreBucketName
+          #   Value: !Ref ArtifactsStoreBucket
+          - Name: PREPROCESS_ROLE
+            Value:
+              Fn::GetAtt: [ PreProcessLambdaExecutionRole, Arn ]
+          - Name: JOB_CREATION_ROLE
+            Value:
+              Fn::GetAtt: [ JobCreationLambdaExecutionRole, Arn ]
+          - Name: FEEDBACK_LOOP_ROLE
+            Value:
+              Fn::GetAtt: [ FeedbackLoopLambdaExecutionRole, Arn ]
+          - Name: SAGEMAKER_PREPROCESS_LOOP_ROLE
+            Value:
+              Fn::GetAtt: [ SageMakerPreprocessLambdaExecutionRole, Arn ]
+          - Name: SAGEMAKER_POSTPROCESS_LOOP_ROLE
+            Value:
+              Fn::GetAtt: [ SageMakerPostprocessLambdaExecutionRole, Arn ]
+          - Name: JOB_TASK_DESCRIPTION
+            Value: Classify as cases, no case, or not sure
+          - Name: MAX_CONCURRENT_TASK_COUNT
+            Value: "200"
+          - Name: NUMBER_OF_HUMAN_WORKERS_PER_DATA_OBJECT
+            Value: "1"
+          - Name: PRIVATE_WORK_TEAM_ARN
+            Value: !Ref SageMakerPrivateWorkTeamArn
+          - Name: PRODUCTION
+            Value: !Ref ProcessingBucket
+          - Name: TASK_AVAILABILITY_LIFE_TIME_IN_SECONDS
+            Value: "604800"
+          - Name: TASK_TIME_LIMIT_IN_SECONDS
+            Value: "3600"
+          - Name: TEMPLATE_PATH
+            Value: !Sub "${ProcessingBucket}/ui-template/instructions_v7.template"
+          - Name: FEEDBACK_FOLDER
+            Value: source-csv
+          - Name: REPORTING_BUCKET
+            Value: !Ref ProcessingBucket
+          - Name: REPORTING_FOLDER
+            Value: for_reporting
+          - Name: MathlibLayerName
+            Value: !Ref MathlibLayerName
+          - Name: DeploymentTargetAccount
+            Value: !Ref DeploymentTargetAccount
+          # - Name: MathlibLayerArn
+          #   Value:
+          #     Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MathlibLayerName, Ref: Suffix ]  ]
+          - Name: NumpyLayerName
+            Value: !Ref NumpyLayerName
+          # - Name: NumpyLayerArn
+          #   Value:
+          #     Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MathlibLayerName, Ref: Suffix ]  ]
+          - Name: PandasLayerName
+            Value: !Ref PandasLayerName
+          - Name: PreProcessLayerName
+            Value: !Ref PreProcessLayerName
+          # - Name: PandasLayerArn
+          #   Value:
+          #     Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MathlibLayerName, Ref: Suffix ]  ]
+          - Name: SUFFIX
+            Value: !Ref Suffix
+          - Name: JOB_CREATION_HANDLER
+            Value: !Ref JobCreationLambdaHandler
+          - Name: PREPROCESS_HANDLER
+            Value: !Ref PreprocessLambdaHandler
+          - Name: FEEDBACK_LOOP_HANDLER
+            Value: !Ref FeedbackLoopLambdaHandler
+          - Name: SAGEMAKER_PREPROCESS_HANDLER
+            Value: !Ref SageMakerPreprocessLambdaHandler
+          - Name: SAGEMAKER_POSTPROCESS_HANDLER
+            Value: !Ref SageMakerPostprocessLambdaHandler
+          - Name: FEEDBACK_BUCKET
+            Value: !Ref ProcessingBucket
+          - Name: PreprocessLambdaZip
+            Value: !Ref PreprocessLambdaZip
+          - Name: JobCreationLambdaZip
+            Value: !Ref JobCreationLambdaZip
+          - Name: FeedbackLoopLambdaZip
+            Value: !Ref FeedbackLoopLambdaZip
+          - Name: SageMakerPreprocessLambdaZip
+            Value: !Ref SageMakerPreprocessLambdaZip
+          - Name: SageMakerPostprocessLambdaZip
+            Value: !Ref SageMakerPostprocessLambdaZip
+          - Name: SageMakerPreprocessLambdaName
+            Value: !Ref SageMakerPreprocessLambdaName
+          - Name: SageMakerPostprocessLambdaName
+            Value: !Ref SageMakerPostprocessLambdaName
+          - Name: JobCreationLambdaTimeOut
+            Value: !Ref JobCreationLambdaTimeOut
+          - Name: PreprocessLambdaTimeOut
+            Value: !Ref PreprocessLambdaTimeOut
+          - Name: FeedbackLoopLambdaTimeOut
+            Value: !Ref FeedbackLoopLambdaTimeOut
+          - Name: SageMakerPreprocessLambdaTimeOut
+            Value: !Ref SageMakerPreprocessLambdaTimeOut
+          - Name: SageMakerPostprocessLambdaTimeOut
+            Value: !Ref SageMakerPostprocessLambdaTimeOut
+          - Name: JobCreationLambdaMemorySize
+            Value: !Ref JobCreationLambdaMemorySize
+          - Name: PreprocessLambdaMemorySize
+            Value: !Ref PreprocessLambdaMemorySize
+          - Name: FeedbackLoopLambdaMemorySize
+            Value: !Ref FeedbackLoopLambdaMemorySize
+          - Name: SageMakerPreprocessLambdaMemorySize
+            Value: !Ref SageMakerPreprocessLambdaMemorySize
+          - Name: SageMakerPostprocessLambdaMemorySize
+            Value: !Ref SageMakerPostprocessLambdaMemorySize           
+      ServiceRole:
+        Ref: CodeBuildServiceRole
+      Source:
+        Type: CODEPIPELINE
+        # Type: CODECOMMIT
+        # Location: 'https://git-codecommit.ca-central-1.amazonaws.com/v1/repos/phc-ipac-clabsi'
+        # InsecureSsl: false
+        # GitCloneDepth: 1
+        # GitSubmodulesConfig:
+        #   FetchSubmodules: false
+  CodeDeployDeploymentGroup:
+    Type: 'AWS::CodeDeploy::DeploymentGroup'
+    Properties:
+      ApplicationName:
+        Ref: CodeDeployApplication
+      DeploymentGroupName:
+        # Ref: DeploymentGroupName
+        Fn::Join: [ '', [ Ref: ApplicationName, Ref: Suffix ]  ]
+      DeploymentStyle:
+        DeploymentOption: WITH_TRAFFIC_CONTROL
+        DeploymentType: BLUE_GREEN
+      ServiceRoleArn:
+        Fn::GetAtt: [ CodeDeployServiceRole, Arn ]
+  CodeDeployApplication:
+    Type: 'AWS::CodeDeploy::Application'
+    Properties:
+      ApplicationName:
+        Fn::Join: [ '', [ Ref: ApplicationName, Ref: Suffix ] ]
+      ComputePlatform: Lambda
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      RoleArn:
+        Fn::GetAtt: [ CodePipelineServiceRole, Arn ]
+      Stages:
+        - Name: Source
+          Actions:
+            - OutputArtifacts:
+                - Name: SourceArtifact
+              Name: RetrieveSourceCode
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Version: '1'
+                Provider: CodeCommit
+              RunOrder: 1
+              Configuration:
+                RepositoryName:
+                  Ref: RepositoryName
+                BranchName:
+                  Ref: RepositoryBranchName
+                PollForSourceChanges: False
+                OutputArtifactFormat: CODE_ZIP
+        - Name: Build
+          Actions:
+            - InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts:
+                - Name: preprocess
+                - Name: job_creation
+                - Name: loop
+              Name: BuildApplication
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: '1'
+                Provider: CodeBuild
+              RunOrder: 1
+              Configuration:
+                ProjectName:
+                  Ref: CodeBuildProject
+        # - Name: Deploy
+        #   Actions:
+        #     - InputArtifacts:
+        #         - Name: BuildArtifact
+        #       Name: Deploy
+        #       ActionTypeId:
+        #         Category: Deploy
+        #         Owner: AWS
+        #         Version: '1'
+        #         Provider: CodeDeploy
+        #       RunOrder: 1
+        #       Configuration:
+        #         ApplicationName:
+        #           Ref: CodeDeployApplication
+        #         DeploymentGroupName:
+        #           Ref: CodeDeployDeploymentGroup
+      ArtifactStore:
+        Type: S3
+        Location:
+          Ref: ArtifactsStoreBucket
+        EncryptionKey:
+          Id:
+            Ref: ArtifactsEncryptionKey
+          Type: KMS
+      # DisableInboundStageTransitions:
+      #   - StageName: Deploy
+      #     Reason: "Disabled as deployment is not ready"
+      Tags:
+        - Key: Project
+          Value: PHC
+        - Key: Customer
+          Value: Providence Health Care
+        - Key: Environment
+          Value:
+            Ref: Environment
+  ExecutePipelineEventRule:
+    Type: 'AWS::Events::Rule'
+    Properties:
+      Description: 'Execute CodePipeline when a change is pushed to the repository'
+      EventBusName: 'default'
+      EventPattern:
+        source:
+          - aws.codecommit
+        detail-type:
+          - 'CodeCommit Repository State Change'
+        resources:
+          - Fn::Join: [ '', [ 'arn:aws:codecommit:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: RepositoryName ] ]
+        detail:
+          event:
+            - referenceCreated
+            - referenceUpdated
+          referenceType:
+            - branch
+          referenceName:
+            - Ref: RepositoryBranchName
+      Name:
+        Fn::Sub: "${RepositoryName}-${RepositoryBranchName}-${Suffix}-changed"
+      State: ENABLED
+      Targets:
+        - Arn:
+            Fn::Join: [ '', [ 'arn:aws:codepipeline:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: CodePipeline ]  ]
+          RoleArn:
+            Fn::GetAtt: [ EventBridgeEventRole, Arn ]
+          Id:
+            Fn::Sub: "${RepositoryName}-${RepositoryBranchName}"
