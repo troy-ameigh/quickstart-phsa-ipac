@@ -4,92 +4,125 @@ Parameters:
   # PipelineName:
   #   Type: String
   #   Description: Pipeline name
-  VpcId:
-    Type: 'AWS::EC2::VPC::Id'
-    Description: VpcId of an existing Virtual Private Cloud with access to the resources used by this pipeline
-    ConstraintDescription: Must be the VPC Id of an existing Virtual Private Cloud.
+  # VpcId:
+  #   Type: 'AWS::EC2::VPC::Id'
+  #   Description: VPCID of an existing virtual private cloud with access to the resources used by this pipeline.
+  #   ConstraintDescription: Must be the VPC Id of an existing virtual private cloud.
   RepositoryName:
     Type: String
-    Description: CodeCommit repository name where the source code is located
+    Description: The CodeCommit repository name where the source code is located.
   RepositoryBranchName:
     Type: String
-    Default: master
-    Description: Repository branch to use
+    Default: main
+    Description: Repository branch to use.
   ApplicationName:
     Type: String
-  # DeploymentGroupName:
-  #   Type: String
+    Description: Application name.
   Environment:
     Type: String
+    Description: Environment variables that are accessible from function code during execution.
   Region:
     Type: String
+    Description: AWS Regions.
   RuntimeVersion:
     Type: String
+    Description: Runtime version.
   JobCreationLambdaName:
     Type: String
+    Description: The name of the lambda function.
   PreprocessLambdaName:
     Type: String
+    Description: The name of the lambda function.
   FeedbackLoopLambdaName:
     Type: String
+    Description: The name of the lambda function.
   SageMakerPreprocessLambdaName:
     Type: String
+    Description: The name of the lambda function.
   SageMakerPostprocessLambdaName:
     Type: String
-  MathlibLayerName:
+    Description: The name of the lambda function.
+  MatplotlibLayerName:
     Type: String
+    Description: The Matplotlib layer name.
   NumpyLayerName:
     Type: String
+    Description: The Numpy layer name.
   PandasLayerName:
     Type: String
+    Description: Pandas layer name.
   PreProcessLayerName:
     Type: String
+    Description: The name of the pre-process layer.
   Suffix:
     Type: String
+    Description: Suffix value for the file that triggers pre-process lambda.
   SageMakerPrivateWorkTeamArn:
     Type: String
-    Description: SageMaker Private Workforce - Private Team ARN
+    Description: The Sagemaker private workforce - private team ARN.
   JobCreationLambdaHandler:
     Type: String
+    Description: Lambda handler for the job creation lambda.
   PreprocessLambdaHandler:
     Type: String
+    Description: Lambda handler for the Preprocess lambda.
   FeedbackLoopLambdaHandler:
     Type: String
+    Description: Lambda handler for the feedback lambda.
   SageMakerPreprocessLambdaHandler:
     Type: String
+    Description: Lambda handler for the Sagemaker pre-process lambda.
   SageMakerPostprocessLambdaHandler:
     Type: String
+    Description: Lambda handler for the Sagemaker post-process lambda.
   JobCreationLambdaZip:
     Type: String
+    Description: The build package for JobCreationLambda.
   PreprocessLambdaZip:
     Type: String
+    Description: The build package for PreprocessLambda.
   FeedbackLoopLambdaZip:
     Type: String
+    Description: The build package for FeedbackLoopLambda.
   SageMakerPreprocessLambdaZip:
     Type: String
+    Description: The build package for SageMakerPreprocessLambda.
   SageMakerPostprocessLambdaZip:
     Type: String
+    Description: The build package for SageMakerPostprocessLambda.
   JobCreationLambdaTimeOut:
     Type: String
+    Description: Job creation lambda time-out.
   PreprocessLambdaTimeOut:
     Type: String
+    Description: Pre-process lambda time-out.
   FeedbackLoopLambdaTimeOut:
     Type: String
+    Description: Feedback loop lambda time-out.
   SageMakerPreprocessLambdaTimeOut:
     Type: String
+    Description: Pre-process lambda time-out.
   SageMakerPostprocessLambdaTimeOut:
     Type: String
+    Description: The Sagemaker post-process lambda time-out.
   JobCreationLambdaMemorySize:
     Type: String
+    Description: Job-creation-lambda memory allocation.
   PreprocessLambdaMemorySize:
     Type: String
+    Description: Pre-process-lambda memory allocation.
   FeedbackLoopLambdaMemorySize:
     Type: String
+    Description: Feedback-loop-lambda memory allocation.
   SageMakerPreprocessLambdaMemorySize:
     Type: String
+    Description: The Sagemaker pre-process lambda memory allocation.
   SageMakerPostprocessLambdaMemorySize:
     Type: String
+    Description: The Sagemaker post-process lambda memory allocation.
   DeploymentTargetAccount:
     Type: String
+    Description: Account id for the target AWS account.
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -127,21 +160,27 @@ Metadata:
           - FeedbackLoopLambdaHandler
           - SageMakerPreprocessLambdaHandler
           - SageMakerPostprocessLambdaHandler
+          - MatplotlibLayerName
+          - NumpyLayerName
+          - PandasLayerName
+          - PreProcessLayerName
+
       - Label:
           default: Deployment parameters
-        Parameters:  
+        Parameters:
           # - DeploymentGroupName
           - ApplicationName
           - Region
           - SageMakerPrivateWorkTeamArn
-      - Label:
-          default: Network parameters
-        Parameters:
-          - VpcId
-          # - AllowedCIDR
+          - Environment
+      # - Label:
+      #     default: Network parameters
+      #   Parameters:
+      #     - VpcId
+      #     # - AllowedCIDR
     ParameterLabels:
-      VpcId:
-        default: "Which pre-existing VPC should this deployment use for VPC-aware resources?"
+      # VpcId:
+      #   default: "Which pre-existing VPC should this deployment use for VPC-aware resources?"
       # PipelineName:
       #   default: "How should this pipeline be called?"
       RepositoryName:
@@ -152,10 +191,12 @@ Metadata:
         # default: "How should this deployment application deployment be called?"
       ApplicationName:
         default: "How should this application be called?"
+      Environment:
+        default: "What is the compute environment for this application, including environmental variables?"
       Region:
         default: "Which Region to use for this deployment?"
       RuntimeVersion:
-        default: "Which Runtime engine use for the Lambda Functions?"
+        default: "Which runtime engine use for the lambda functions?"
       JobCreationLambdaName:
         default: "How should the JobCreationLambda be called?"
       PreprocessLambdaName:
@@ -167,7 +208,7 @@ Metadata:
       SageMakerPostprocessLambdaName:
         default: "How should the SageMakerPostprocessLambda be called?"
       SageMakerPrivateWorkTeamArn:
-        default: "What is the ARN of the SageMaker Private Workforce team?" 
+        default: "What is the ARN of the SageMaker private workforce team?"
       Suffix:
         default: "What is the naming suffix for this deployment?"
       JobCreationLambdaZip:
@@ -191,7 +232,35 @@ Metadata:
       SageMakerPreprocessLambdaHandler:
         default: "What is the value for SageMakerPreprocessLambdaHandler?"
       SageMakerPostprocessLambdaHandler:
-        default: "What is the value for SageMakerPostprocessLambdaHandler?"     
+        default: "What is the value for SageMakerPostprocessLambdaHandler?"
+      MatplotlibLayerName:
+        default: "What is the Matplotlib layer name?"
+      NumpyLayerName:
+        default: "What is the Numpy layer name?"
+      PandasLayerName:
+        default: "What is the pandas layer name?"
+      PreProcessLayerName:
+        default: "What is the name of the pre-processing lambda?"
+      JobCreationLambdaTimeOut:
+        default: "What is the time out for JobCreation lambda?"
+      PreprocessLambdaTimeOut:
+        default: "What is the time out for the Preprocess lambda?"
+      FeedbackLoopLambdaTimeOut:
+        default: "What is the time out for FeedbackLoop lambda?"
+      SageMakerPreprocessLambdaTimeOut:
+        default: "What is the time out for SageMakerPreprocess lambda?"
+      SageMakerPostprocessLambdaTimeOut:
+        default: "What is the time out for SageMakerPostprocess lambda?"
+      JobCreationLambdaMemorySize:
+        default: "What is the memory allocated for JobCreation lambda?"
+      PreprocessLambdaMemorySize:
+        default: "What is the memory allocated for pre-processing lambda?"
+      FeedbackLoopLambdaMemorySize:
+        default: "What is the memory allocated for FeedbackLoop lambda?"
+      SageMakerPreprocessLambdaMemorySize:
+        default: "What is the memory allocated for SageMakerPreprocess lambda?"
+      SageMakerPostprocessLambdaMemorySize:
+        default: "What is the memory allocated for SageMakerPostprocess lambda"
 Resources:
   ArtifactsEncryptionKey:
     Type: 'AWS::KMS::Key'
@@ -204,14 +273,14 @@ Resources:
           Effect: Allow
           Principal:
             AWS:
-              Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:iam::', Ref: 'AWS::AccountId', ':root' ] ]
+              Fn::Join: [ '', [ 'arn:aws:iam::', Ref: 'AWS::AccountId', ':root' ] ]
           Action: kms:*
           Resource: '*'
         - Sid: Allow Cloud Admins to manage the key
           Effect: Allow
           Principal:
             AWS:
-              Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:iam::', Ref: 'AWS::AccountId', ':role/phsa-sso-admin' ] ]
+              Fn::Join: [ '', [ 'arn:aws:iam::', Ref: 'AWS::AccountId', ':role/phsa-sso-admin' ] ]
           Action:
             - kms:Create*
             - kms:Describe*
@@ -253,14 +322,14 @@ Resources:
           Effect: Allow
           Principal:
             AWS:
-              Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:iam::', Ref: 'AWS::AccountId', ':root' ] ]
+              Fn::Join: [ '', [ 'arn:aws:iam::', Ref: 'AWS::AccountId', ':root' ] ]
           Action: kms:*
           Resource: '*'
         - Sid: Allow Cloud Admins to manage the key
           Effect: Allow
           Principal:
             AWS:
-              Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:iam::', Ref: 'AWS::AccountId', ':role/phsa-sso-admin' ] ]
+              Fn::Join: [ '', [ 'arn:aws:iam::', Ref: 'AWS::AccountId', ':role/phsa-sso-admin' ] ]
           Action:
             - kms:Create*
             - kms:Describe*
@@ -382,7 +451,7 @@ Resources:
             - 'sts:AssumeRole'
       Path: /
       ManagedPolicyArns:
-        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
   JobCreationLambdaExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -397,8 +466,9 @@ Resources:
             - 'sts:AssumeRole'
       Path: /
       ManagedPolicyArns:
-          - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
-          - !Sub 'arn:${AWS::Partition}:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy'
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+
   FeedbackLoopLambdaExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -413,7 +483,7 @@ Resources:
             - 'sts:AssumeRole'
       Path: /
       ManagedPolicyArns:
-        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
   SageMakerPreprocessLambdaExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -428,7 +498,8 @@ Resources:
             - 'sts:AssumeRole'
       Path: /
       ManagedPolicyArns:
-        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
   SageMakerPostprocessLambdaExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -443,7 +514,7 @@ Resources:
             - 'sts:AssumeRole'
       Path: /
       ManagedPolicyArns:
-        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
   EventBridgeEventRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -466,7 +537,7 @@ Resources:
                 Action:
                   - 'codepipeline:StartPipelineExecution'
                 Resource:
-                  Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:codepipeline:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: CodePipeline ]  ]
+                  Fn::Join: [ '', [ 'arn:aws:codepipeline:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: CodePipeline ]  ]
   CodePipelineServiceRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -483,7 +554,8 @@ Resources:
               - 'sts:AssumeRole'
       Path: /
       ManagedPolicyArns:
-        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AWSCodePipeline_FullAccess'
+        - 'arn:aws:iam::aws:policy/AWSCodePipeline_FullAccess'
+
       Policies:
         - PolicyName: CodePipelineRepositoryAccess
           PolicyDocument:
@@ -566,32 +638,31 @@ Resources:
                   - lambda:GetFunction
                   - lambda:UpdateFunctionConfiguration
                 Resource:
-                  - Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: JobCreationLambdaName, Ref: Suffix ]  ]
-                  - Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: FeedbackLoopLambdaName , Ref: Suffix ]  ]
-                  - Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: PreprocessLambdaName , Ref: Suffix ]  ]
-                  - Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: SageMakerPreprocessLambdaName , Ref: Suffix ]  ]
-                  - Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: SageMakerPostprocessLambdaName , Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: JobCreationLambdaName, Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: FeedbackLoopLambdaName , Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: PreprocessLambdaName , Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: SageMakerPreprocessLambdaName , Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: SageMakerPostprocessLambdaName , Ref: Suffix ]  ]
               - Effect: Allow
                 Action:
                   - lambda:PublishLayerVersion
                   - lambda:ListLayerVersions
                 Resource:
-                  - Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MathlibLayerName, Ref: Suffix ]  ]
-                  - Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: NumpyLayerName, Ref: Suffix ]  ]
-                  - Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PandasLayerName, Ref: Suffix ]  ]
-                  - Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PreProcessLayerName, Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MatplotlibLayerName, Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: NumpyLayerName, Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PandasLayerName, Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PreProcessLayerName, Ref: Suffix ]  ]
               - Effect: Allow
                 Action:
                   - lambda:GetLayerVersion
                 Resource:
-                  - Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MathlibLayerName, Ref: Suffix, ':', '*' ]  ]
-                  - Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: NumpyLayerName, Ref: Suffix, ':', '*' ]  ]
-                  - Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PandasLayerName, Ref: Suffix, ':', '*' ]  ]
-                  - Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PreProcessLayerName, Ref: Suffix, ':', '*' ]  ]
-                  ## TODO: why are we accessing something from these accounts for customers.
-                  - 'arn:aws:lambda:ca-central-1:580247275435:layer:LambdaInsightsExtension:*'
-                  - 'arn:aws:lambda:ca-central-1:778625758767:layer:AWSLambda-Python36-SciPy1x:*'
-                  - 'arn:aws:lambda:ca-central-1:778625758767:layer:AWSLambda-Python37-SciPy1x:*'
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MatplotlibLayerName, Ref: Suffix, ':', '*' ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: NumpyLayerName, Ref: Suffix, ':', '*' ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PandasLayerName, Ref: Suffix, ':', '*' ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PreProcessLayerName, Ref: Suffix, ':', '*' ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', 'LambdaInsightsExtension', Ref: Suffix, ':', '*' ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', 'AWSLambda-Python36-SciPy1x', Ref: Suffix, ':', '*' ]  ]
+                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', 'AWSLambda-Python37-SciPy1x', Ref: Suffix, ':', '*' ]  ]
               - Effect: Allow
                 Action:
                   - 's3:PutBucketNotificationConfiguration'
@@ -622,7 +693,9 @@ Resources:
               - 'sts:AssumeRole'
       Path: /
       ManagedPolicyArns:
-        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda'
+
+        - 'arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda'
+
   SageMakerGroundTruthExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -636,7 +709,8 @@ Resources:
           Action:
             - 'sts:AssumeRole'
       ManagedPolicyArns:
-        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSageMakerFullAccess'
+        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+
   CodeBuildProject:
     Type: 'AWS::CodeBuild::Project'
     Properties:
@@ -744,32 +818,32 @@ Resources:
           - Name: TASK_TIME_LIMIT_IN_SECONDS
             Value: "3600"
           - Name: TEMPLATE_PATH
-            Value: !Sub "${ProcessingBucket}/ui-template/instructions_v7.template"
+            Value: !Sub "${ProcessingBucket}/ui-template/instructions_v19.template"
           - Name: FEEDBACK_FOLDER
             Value: source-csv
           - Name: REPORTING_BUCKET
             Value: !Ref ProcessingBucket
           - Name: REPORTING_FOLDER
             Value: for_reporting
-          - Name: MathlibLayerName
-            Value: !Ref MathlibLayerName
+          - Name: MatplotlibLayerName
+            Value: !Ref MatplotlibLayerName
           - Name: DeploymentTargetAccount
             Value: !Ref DeploymentTargetAccount
           # - Name: MathlibLayerArn
           #   Value:
-          #     Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MathlibLayerName, Ref: Suffix ]  ]
+          #     Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MatplotlibLayerName, Ref: Suffix ]  ]
           - Name: NumpyLayerName
             Value: !Ref NumpyLayerName
           # - Name: NumpyLayerArn
           #   Value:
-          #     Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MathlibLayerName, Ref: Suffix ]  ]
+          #     Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MatplotlibLayerName, Ref: Suffix ]  ]
           - Name: PandasLayerName
             Value: !Ref PandasLayerName
           - Name: PreProcessLayerName
             Value: !Ref PreProcessLayerName
           # - Name: PandasLayerArn
           #   Value:
-          #     Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MathlibLayerName, Ref: Suffix ]  ]
+          #     Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MatplotlibLayerName, Ref: Suffix ]  ]
           - Name: SUFFIX
             Value: !Ref Suffix
           - Name: JOB_CREATION_HANDLER
@@ -817,7 +891,7 @@ Resources:
           - Name: SageMakerPreprocessLambdaMemorySize
             Value: !Ref SageMakerPreprocessLambdaMemorySize
           - Name: SageMakerPostprocessLambdaMemorySize
-            Value: !Ref SageMakerPostprocessLambdaMemorySize           
+            Value: !Ref SageMakerPostprocessLambdaMemorySize
       ServiceRole:
         Ref: CodeBuildServiceRole
       Source:
@@ -924,18 +998,18 @@ Resources:
         - Key: Environment
           Value:
             Ref: Environment
-  ExecutePipelineEventRule:
+  RunPipelineEventRule:
     Type: 'AWS::Events::Rule'
     Properties:
-      Description: 'Execute CodePipeline when a change is pushed to the repository'
+      Description: 'Run CodePipeline when a update is pushed to the repository'
       EventBusName: 'default'
       EventPattern:
         source:
           - aws.codecommit
         detail-type:
-          - 'CodeCommit Repository State Change'
+          - 'CodeCommit Repository State is updated'
         resources:
-          - Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:codecommit:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: RepositoryName ] ]
+          - Fn::Join: [ '', [ 'arn:aws:codecommit:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: RepositoryName ] ]
         detail:
           event:
             - referenceCreated
@@ -945,11 +1019,11 @@ Resources:
           referenceName:
             - Ref: RepositoryBranchName
       Name:
-        Fn::Sub: "${RepositoryName}-${RepositoryBranchName}-${Suffix}-changed"
+        Fn::Sub: "${RepositoryName}-${RepositoryBranchName}-${Suffix}-updated"
       State: ENABLED
       Targets:
         - Arn:
-            Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:codepipeline:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: CodePipeline ]  ]
+            Fn::Join: [ '', [ 'arn:aws:codepipeline:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: CodePipeline ]  ]
           RoleArn:
             Fn::GetAtt: [ EventBridgeEventRole, Arn ]
           Id:
