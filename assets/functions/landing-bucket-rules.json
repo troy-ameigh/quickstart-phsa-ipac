@@ -1,0 +1,24 @@
+{
+    "LambdaFunctionConfigurations": [
+        {
+            "LambdaFunctionArn": "arn:aws:lambda:ca-central-1:ACCOUNT:function:PREPROCESS_FUNCTION_NAME",
+            "Events": [
+                "s3:ObjectCreated:*"
+            ],
+            "Filter": {
+                "Key": {
+                    "FilterRules": [
+                        {
+                            "Name": "prefix",
+                            "Value": "ipac-clabsi/"
+                        },
+                        {
+                            "Name": "suffix",
+                            "Value": ".csv"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}
