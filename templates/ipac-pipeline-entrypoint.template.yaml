@@ -1,5 +1,97 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: PHC CI/CD (qs-1rndhj0aj)
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Pipeline parameters
+        Parameters:
+          # - PipelineName
+          - RepositoryName
+          - RepositoryBranchName
+          - RuntimeVersion
+          - JobCreationLambdaName
+          - PreprocessLambdaName
+          - FeedbackLoopLambdaName
+          - SageMakerPreprocessLambdaName
+          - SageMakerPostprocessLambdaName
+          - Suffix
+          - JobCreationLambdaZip
+          - PreprocessLambdaZip
+          - FeedbackLoopLambdaZip
+          - SageMakerPreprocessLambdaZip
+          - SageMakerPostprocessLambdaZip
+          - JobCreationLambdaTimeOut
+          - PreprocessLambdaTimeOut
+          - FeedbackLoopLambdaTimeOut
+          - SageMakerPreprocessLambdaTimeOut
+          - SageMakerPostprocessLambdaTimeOut
+          - JobCreationLambdaMemorySize
+          - PreprocessLambdaMemorySize
+          - FeedbackLoopLambdaMemorySize
+          - SageMakerPreprocessLambdaMemorySize
+          - SageMakerPostprocessLambdaMemorySize
+          - DeploymentTargetAccount
+          - JobCreationLambdaHandler
+          - PreprocessLambdaHandler
+          - FeedbackLoopLambdaHandler
+          - SageMakerPreprocessLambdaHandler
+          - SageMakerPostprocessLambdaHandler
+          - MatplotlibLayerName
+          - NumpyLayerName
+          - PandasLayerName
+          - PreProcessLayerName
+
+      - Label:
+          default: Deployment parameters
+        Parameters:
+          # - DeploymentGroupName
+          - ApplicationName
+          - Region
+          - SageMakerPrivateWorkTeamArn
+          - Environment
+      - Label:
+          default: AWS Quick Start configuration
+        Parameters:
+          - QSS3BucketName
+          - QSS3KeyPrefix
+          - QSS3BucketRegion
+          - LambdaZipsBucketName
+      # - Label:
+      #     default: Network parameters
+      #   Parameters:
+      #     - VpcId
+      #     # - AllowedCIDR
+    ParameterLabels:
+      # VpcId:
+      #   default: "Which pre-existing VPC should this deployment use for VPC-aware resources?"
+      # PipelineName:
+      #   default: "How should this pipeline be called?"
+      RepositoryName:
+        default: "Which pre-existing CodeCommit repository this pipeline should monitor?"
+      RepositoryBranchName:
+        default: "Which branch CodePipeline should monitor for new commits?"
+      # DeploymentGroupName:
+        # default: "How should this deployment application deployment be called?"
+      ApplicationName:
+        default: "How should this application be called?"
+      Environment:
+        default: "What is the compute environment for this application, including environmental variables?"
+      Region:
+        default: "Which Region to use for this deployment?"
+
+      SageMakerPrivateWorkTeamArn:
+        default: "What is the ARN of the SageMaker private workforce team?"
+      Suffix:
+        default: "What is the naming suffix for this deployment?"
+      QSS3BucketName:
+        default: Quick Start S3 bucket name
+      QSS3KeyPrefix:
+        default: Quick Start S3 key prefix
+      QSS3BucketRegion:
+        default: Quick Start S3 bucket Region
+      LambdaZipsBucketName:
+        default: Lambda zips bucket name
 Parameters:
   # PipelineName:
   #   Type: String
@@ -123,145 +215,47 @@ Parameters:
   DeploymentTargetAccount:
     Type: String
     Description: Account id for the target AWS account.
-Metadata:
-  AWS::CloudFormation::Interface:
-    ParameterGroups:
-      - Label:
-          default: Pipeline parameters
-        Parameters:
-          # - PipelineName
-          - RepositoryName
-          - RepositoryBranchName
-          - RuntimeVersion
-          - JobCreationLambdaName
-          - PreprocessLambdaName
-          - FeedbackLoopLambdaName
-          - SageMakerPreprocessLambdaName
-          - SageMakerPostprocessLambdaName
-          - Suffix
-          - JobCreationLambdaZip
-          - PreprocessLambdaZip
-          - FeedbackLoopLambdaZip
-          - SageMakerPreprocessLambdaZip
-          - SageMakerPostprocessLambdaZip
-          - JobCreationLambdaTimeOut
-          - PreprocessLambdaTimeOut
-          - FeedbackLoopLambdaTimeOut
-          - SageMakerPreprocessLambdaTimeOut
-          - SageMakerPostprocessLambdaTimeOut
-          - JobCreationLambdaMemorySize
-          - PreprocessLambdaMemorySize
-          - FeedbackLoopLambdaMemorySize
-          - SageMakerPreprocessLambdaMemorySize
-          - SageMakerPostprocessLambdaMemorySize
-          - DeploymentTargetAccount
-          - JobCreationLambdaHandler
-          - PreprocessLambdaHandler
-          - FeedbackLoopLambdaHandler
-          - SageMakerPreprocessLambdaHandler
-          - SageMakerPostprocessLambdaHandler
-          - MatplotlibLayerName
-          - NumpyLayerName
-          - PandasLayerName
-          - PreProcessLayerName
-
-      - Label:
-          default: Deployment parameters
-        Parameters:
-          # - DeploymentGroupName
-          - ApplicationName
-          - Region
-          - SageMakerPrivateWorkTeamArn
-          - Environment
-      # - Label:
-      #     default: Network parameters
-      #   Parameters:
-      #     - VpcId
-      #     # - AllowedCIDR
-    ParameterLabels:
-      # VpcId:
-      #   default: "Which pre-existing VPC should this deployment use for VPC-aware resources?"
-      # PipelineName:
-      #   default: "How should this pipeline be called?"
-      RepositoryName:
-        default: "Which pre-existing CodeCommit repository this pipeline should monitor?"
-      RepositoryBranchName:
-        default: "Which branch CodePipeline should monitor for new commits?"
-      # DeploymentGroupName:
-        # default: "How should this deployment application deployment be called?"
-      ApplicationName:
-        default: "How should this application be called?"
-      Environment:
-        default: "What is the compute environment for this application, including environmental variables?"
-      Region:
-        default: "Which Region to use for this deployment?"
-      RuntimeVersion:
-        default: "Which runtime engine use for the lambda functions?"
-      JobCreationLambdaName:
-        default: "How should the JobCreationLambda be called?"
-      PreprocessLambdaName:
-        default: "How should the PreprocessLambda be called?"
-      FeedbackLoopLambdaName:
-        default: "How should the FeedbackLoopLambda be called?"
-      SageMakerPreprocessLambdaName:
-        default: "How should the SageMakerPreprocessLambda be called?"
-      SageMakerPostprocessLambdaName:
-        default: "How should the SageMakerPostprocessLambda be called?"
-      SageMakerPrivateWorkTeamArn:
-        default: "What is the ARN of the SageMaker private workforce team?"
-      Suffix:
-        default: "What is the naming suffix for this deployment?"
-      JobCreationLambdaZip:
-        default: "What is the build package for JobCreationLambda be called?"
-      PreprocessLambdaZip:
-        default: "What is the build package for PreprocessLambda be called?"
-      FeedbackLoopLambdaZip:
-        default: "What is the build package for FeedbackLoopLambda be called?"
-      SageMakerPreprocessLambdaZip:
-        default: "What is the build package for SageMakerPreprocessLambda be called?"
-      SageMakerPostprocessLambdaZip:
-        default: "What is the build package for SageMakerPostprocessLambda be called?"
-      DeploymentTargetAccount:
-        default: "What is the AccountId for the target AWS account for the deployment?"
-      JobCreationLambdaHandler:
-        default: "What is the value for JobCreationLambdaHandler?"
-      PreprocessLambdaHandler:
-        default: "What is the value for PreprocessLambdaHandler?"
-      FeedbackLoopLambdaHandler:
-        default: "What is the value for FeedbackLoopLambdaHandler?"
-      SageMakerPreprocessLambdaHandler:
-        default: "What is the value for SageMakerPreprocessLambdaHandler?"
-      SageMakerPostprocessLambdaHandler:
-        default: "What is the value for SageMakerPostprocessLambdaHandler?"
-      MatplotlibLayerName:
-        default: "What is the Matplotlib layer name?"
-      NumpyLayerName:
-        default: "What is the Numpy layer name?"
-      PandasLayerName:
-        default: "What is the pandas layer name?"
-      PreProcessLayerName:
-        default: "What is the name of the pre-processing lambda?"
-      JobCreationLambdaTimeOut:
-        default: "What is the time out for JobCreation lambda?"
-      PreprocessLambdaTimeOut:
-        default: "What is the time out for the Preprocess lambda?"
-      FeedbackLoopLambdaTimeOut:
-        default: "What is the time out for FeedbackLoop lambda?"
-      SageMakerPreprocessLambdaTimeOut:
-        default: "What is the time out for SageMakerPreprocess lambda?"
-      SageMakerPostprocessLambdaTimeOut:
-        default: "What is the time out for SageMakerPostprocess lambda?"
-      JobCreationLambdaMemorySize:
-        default: "What is the memory allocated for JobCreation lambda?"
-      PreprocessLambdaMemorySize:
-        default: "What is the memory allocated for pre-processing lambda?"
-      FeedbackLoopLambdaMemorySize:
-        default: "What is the memory allocated for FeedbackLoop lambda?"
-      SageMakerPreprocessLambdaMemorySize:
-        default: "What is the memory allocated for SageMakerPreprocess lambda?"
-      SageMakerPostprocessLambdaMemorySize:
-        default: "What is the memory allocated for SageMakerPostprocess lambda"
+  #Require for QS Deployment (Below Here)
+  QSS3BucketName:
+    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
+    ConstraintDescription: Quick Start bucket name can include numbers, lowercase
+      letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
+      (-).
+    Default: aws-quickstart
+    Description: S3 bucket name for the Quick Start assets. This string can include
+      numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start
+      or end with a hyphen (-).
+    Type: String
+  QSS3KeyPrefix:
+    AllowedPattern: ^[0-9a-zA-Z-/.]*$
+    ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), periods (.) and forward slash (/).
+    Default: quickstart-amazon-eks/
+    Description: S3 key prefix for the Quick Start assets. Quick Start key prefix
+      can include numbers, lowercase letters, uppercase letters, hyphens (-), periods (.) and
+      forward slash (/).
+    Type: String
+  QSS3BucketRegion:
+    Default: 'us-east-1'
+    Description: Region where the Quick Start S3 bucket (QSS3BucketName) is
+      hosted. When using your own bucket, you must specify this value.
+    Type: String
+  LambdaZipsBucketName:
+    Description: '[OPTIONAL] The name of the S3 bucket where the Lambda zip files should be placed. If you leave this parameter blank, an S3 bucket will be created.'
+    Type: String
+    Default: ''
+Conditions:
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
 Resources:
+  FunctionsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/functions.template.yaml'
+        - S3Region: !If [ UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion ]
+          S3Bucket: !If [ UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName ]
+      Parameters:
+
   ArtifactsEncryptionKey:
     Type: 'AWS::KMS::Key'
     Properties:
@@ -273,14 +267,14 @@ Resources:
           Effect: Allow
           Principal:
             AWS:
-              Fn::Join: [ '', [ 'arn:aws:iam::', Ref: 'AWS::AccountId', ':root' ] ]
+              Fn::Join: [ '', [ 'arn:${AWS::Partition}:iam::', Ref: 'AWS::AccountId', ':root' ] ]
           Action: kms:*
           Resource: '*'
         - Sid: Allow Cloud Admins to manage the key
           Effect: Allow
           Principal:
             AWS:
-              Fn::Join: [ '', [ 'arn:aws:iam::', Ref: 'AWS::AccountId', ':role/phsa-sso-admin' ] ]
+              Fn::Join: [ '', [ 'arn:${AWS::Partition}:iam::', Ref: 'AWS::AccountId', ':role/phsa-sso-admin' ] ]
           Action:
             - kms:Create*
             - kms:Describe*
@@ -322,14 +316,14 @@ Resources:
           Effect: Allow
           Principal:
             AWS:
-              Fn::Join: [ '', [ 'arn:aws:iam::', Ref: 'AWS::AccountId', ':root' ] ]
+              Fn::Join: [ '', [ 'arn:${AWS::Partition}:iam::', Ref: 'AWS::AccountId', ':root' ] ]
           Action: kms:*
           Resource: '*'
         - Sid: Allow Cloud Admins to manage the key
           Effect: Allow
           Principal:
             AWS:
-              Fn::Join: [ '', [ 'arn:aws:iam::', Ref: 'AWS::AccountId', ':role/phsa-sso-admin' ] ]
+              Fn::Join: [ '', [ 'arn:${AWS::Partition}:iam::', Ref: 'AWS::AccountId', ':role/phsa-sso-admin' ] ]
           Action:
             - kms:Create*
             - kms:Describe*
@@ -451,7 +445,7 @@ Resources:
             - 'sts:AssumeRole'
       Path: /
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
   JobCreationLambdaExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -466,8 +460,8 @@ Resources:
             - 'sts:AssumeRole'
       Path: /
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+        - arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:${AWS::Partition}:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
   FeedbackLoopLambdaExecutionRole:
     Type: 'AWS::IAM::Role'
@@ -483,7 +477,7 @@ Resources:
             - 'sts:AssumeRole'
       Path: /
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
   SageMakerPreprocessLambdaExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -498,7 +492,7 @@ Resources:
             - 'sts:AssumeRole'
       Path: /
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
   SageMakerPostprocessLambdaExecutionRole:
     Type: 'AWS::IAM::Role'
@@ -514,7 +508,7 @@ Resources:
             - 'sts:AssumeRole'
       Path: /
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
   EventBridgeEventRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -537,7 +531,7 @@ Resources:
                 Action:
                   - 'codepipeline:StartPipelineExecution'
                 Resource:
-                  Fn::Join: [ '', [ 'arn:aws:codepipeline:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: CodePipeline ]  ]
+                  Fn::Join: [ '', [ 'arn:${AWS::Partition}:codepipeline:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: CodePipeline ]  ]
   CodePipelineServiceRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -554,7 +548,7 @@ Resources:
               - 'sts:AssumeRole'
       Path: /
       ManagedPolicyArns:
-        - 'arn:aws:iam::aws:policy/AWSCodePipeline_FullAccess'
+        - 'arn:${AWS::Partition}:iam::aws:policy/AWSCodePipeline_FullAccess'
 
       Policies:
         - PolicyName: CodePipelineRepositoryAccess
@@ -568,7 +562,7 @@ Resources:
                   - codecommit:UploadArchive
                   - codecommit:GetUploadArchiveStatus
                 Resource:
-                  Fn::Join: [ '', [ 'arn:aws:codecommit:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: RepositoryName ] ]
+                  Fn::Join: [ '', [ 'arn:${AWS::Partition}:codecommit:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: RepositoryName ] ]
         - PolicyName: CodePipelineBuildStage
           PolicyDocument:
             Version: 2012-10-17
@@ -578,7 +572,7 @@ Resources:
                   - codebuild:StartBuild
                   - codebuild:BatchGetBuilds
                 Resource:
-                  Fn::Join: [ '', [ 'arn:aws:codebuild:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':project/', Ref: CodeBuildProject ] ]
+                  Fn::Join: [ '', [ 'arn:${AWS::Partition}:codebuild:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':project/', Ref: CodeBuildProject ] ]
         - PolicyName: CodePipelineArtifactsStoreObjectAccess
           PolicyDocument:
             Version: 2012-10-17
@@ -638,31 +632,31 @@ Resources:
                   - lambda:GetFunction
                   - lambda:UpdateFunctionConfiguration
                 Resource:
-                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: JobCreationLambdaName, Ref: Suffix ]  ]
-                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: FeedbackLoopLambdaName , Ref: Suffix ]  ]
-                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: PreprocessLambdaName , Ref: Suffix ]  ]
-                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: SageMakerPreprocessLambdaName , Ref: Suffix ]  ]
-                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: SageMakerPostprocessLambdaName , Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: JobCreationLambdaName, Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: FeedbackLoopLambdaName , Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: PreprocessLambdaName , Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: SageMakerPreprocessLambdaName , Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'function', ':', Ref: SageMakerPostprocessLambdaName , Ref: Suffix ]  ]
               - Effect: Allow
                 Action:
                   - lambda:PublishLayerVersion
                   - lambda:ListLayerVersions
                 Resource:
-                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MatplotlibLayerName, Ref: Suffix ]  ]
-                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: NumpyLayerName, Ref: Suffix ]  ]
-                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PandasLayerName, Ref: Suffix ]  ]
-                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PreProcessLayerName, Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MatplotlibLayerName, Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: NumpyLayerName, Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PandasLayerName, Ref: Suffix ]  ]
+                  - Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PreProcessLayerName, Ref: Suffix ]  ]
               - Effect: Allow
                 Action:
                   - lambda:GetLayerVersion
                 Resource:
-                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MatplotlibLayerName, Ref: Suffix, ':', '*' ]  ]
-                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: NumpyLayerName, Ref: Suffix, ':', '*' ]  ]
-                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PandasLayerName, Ref: Suffix, ':', '*' ]  ]
-                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PreProcessLayerName, Ref: Suffix, ':', '*' ]  ]
-                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', 'LambdaInsightsExtension', Ref: Suffix, ':', '*' ]  ]
-                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', 'AWSLambda-Python36-SciPy1x', Ref: Suffix, ':', '*' ]  ]
-                  - Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', 'AWSLambda-Python37-SciPy1x', Ref: Suffix, ':', '*' ]  ]
+                  - Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MatplotlibLayerName, Ref: Suffix, ':', '*' ]  ]
+                  - Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: NumpyLayerName, Ref: Suffix, ':', '*' ]  ]
+                  - Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PandasLayerName, Ref: Suffix, ':', '*' ]  ]
+                  - Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: PreProcessLayerName, Ref: Suffix, ':', '*' ]  ]
+                  - Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', 'LambdaInsightsExtension', Ref: Suffix, ':', '*' ]  ]
+                  - Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', 'AWSLambda-Python36-SciPy1x', Ref: Suffix, ':', '*' ]  ]
+                  - Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', 'AWSLambda-Python37-SciPy1x', Ref: Suffix, ':', '*' ]  ]
               - Effect: Allow
                 Action:
                   - 's3:PutBucketNotificationConfiguration'
@@ -694,7 +688,7 @@ Resources:
       Path: /
       ManagedPolicyArns:
 
-        - 'arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda'
+        - 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda'
 
   SageMakerGroundTruthExecutionRole:
     Type: 'AWS::IAM::Role'
@@ -709,7 +703,7 @@ Resources:
           Action:
             - 'sts:AssumeRole'
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+        - arn:${AWS::Partition}:iam::aws:policy/AmazonSageMakerFullAccess
 
   CodeBuildProject:
     Type: 'AWS::CodeBuild::Project'
@@ -831,19 +825,19 @@ Resources:
             Value: !Ref DeploymentTargetAccount
           # - Name: MathlibLayerArn
           #   Value:
-          #     Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MatplotlibLayerName, Ref: Suffix ]  ]
+          #     Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MatplotlibLayerName, Ref: Suffix ]  ]
           - Name: NumpyLayerName
             Value: !Ref NumpyLayerName
           # - Name: NumpyLayerArn
           #   Value:
-          #     Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MatplotlibLayerName, Ref: Suffix ]  ]
+          #     Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MatplotlibLayerName, Ref: Suffix ]  ]
           - Name: PandasLayerName
             Value: !Ref PandasLayerName
           - Name: PreProcessLayerName
             Value: !Ref PreProcessLayerName
           # - Name: PandasLayerArn
           #   Value:
-          #     Fn::Join: [ '', [ 'arn:aws:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MatplotlibLayerName, Ref: Suffix ]  ]
+          #     Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MatplotlibLayerName, Ref: Suffix ]  ]
           - Name: SUFFIX
             Value: !Ref Suffix
           - Name: JOB_CREATION_HANDLER
@@ -950,7 +944,7 @@ Resources:
             - InputArtifacts:
                 - Name: SourceArtifact
               OutputArtifacts:
-                - Name: preprocess
+                - Name: preprocesslayer
                 - Name: job_creation
                 - Name: loop
               Name: BuildApplication
@@ -1009,7 +1003,7 @@ Resources:
         detail-type:
           - 'CodeCommit Repository State is updated'
         resources:
-          - Fn::Join: [ '', [ 'arn:aws:codecommit:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: RepositoryName ] ]
+          - Fn::Join: [ '', [ 'arn:${AWS::Partition}:codecommit:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: RepositoryName ] ]
         detail:
           event:
             - referenceCreated
@@ -1023,7 +1017,7 @@ Resources:
       State: ENABLED
       Targets:
         - Arn:
-            Fn::Join: [ '', [ 'arn:aws:codepipeline:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: CodePipeline ]  ]
+            Fn::Join: [ '', [ 'arn:${AWS::Partition}:codepipeline:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: CodePipeline ]  ]
           RoleArn:
             Fn::GetAtt: [ EventBridgeEventRole, Arn ]
           Id:

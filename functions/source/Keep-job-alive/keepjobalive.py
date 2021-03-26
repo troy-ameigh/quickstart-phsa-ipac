@@ -100,7 +100,7 @@ def removerow_creationtime(mrn, previously_reviewed):
     body = csv_obj['Body']
     # reading and decodying the csv by utf-8
     csv_string = body.read().decode('utf-8')
-    # converting csv to stringIO and pandas dataframe
+    # converting csv to stringIO and pandaslayer dataframe
     dataframe = pd.read_csv(StringIO(csv_string))
     # finding the rows tha have matching MRN and PR
     indexnames = dataframe[
