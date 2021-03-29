@@ -1,10 +1,10 @@
 // Change the following attributes.
 :quickstart-project-name: quickstart-phsa-ipac
-:partner-product-name: Example Product Name
+:partner-product-name: Digital Products Providence Health Care
 // For the following attribute, if you have no short name, enter the same name as partner-product-name.
-:partner-product-short-name: IPAC
+:partner-product-short-name: IPAC-CLABSI
 // If there's no partner, comment partner-company-name and partner-contributors.
-:partner-company-name: Providence Healthcare
+:partner-company-name: Providence Health Care
 :doc-month: April
 :doc-year: 2021
 // For the following "contributor" attributes, if the partner agrees to include names in the byline, 
