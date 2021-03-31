@@ -1,4 +1,74 @@
 // If no preperation is required, remove all content from here
+==== required data schema: 
+
+We expect an Excel file with 2 sheets in the Landing-Zone bucket to start the process:
+
+== The first sheet
+It needs to contain the following information. Please see below the column names and their expected datatype.
+
+Field marked in *bold* are mandatory, the rest of the fields are recommended, but optional.
+
+=== Int64 fields
+
+-  *encntr_num* (Encounter number)
+-  *mrn* (Medical Record Number)
+-  encntr_id (Encouner ID)
+-  collection_date_id (Blood collection date)
+-  loc_bed_desc_src_at_collection (Patient's bed number at the blood collection)
+-  transfer_in_to_collect (Nursing unit admission date to blood collection date in days)
+-  transfer_out_to_collect (Blood collection date to patient's discharge date in days)
+-  ce_dynamic_label_id (Internal ID)
+-  line_tube_drain_insertion_seq (Central line insertion sequence)
+-  line_insert_to_collection (Central line insertion date to blood collection date in days)
+-  birth_date_id (Patient's DOB)
+-  line_remove_to_collect ((Central line removal date to blood collection date in days))
+-  bc_phn (Provincial Health Number)
+
+=== String fields
+
+-  nursing_unit_short_desc (Nursing unit code)
+-  facility_name_src (Hospital or clinic name at blood collection)
+-  encntr_type_desc_src_at_collection (Encounter type at blood collection)
+-  clinical_event_code_desc_src (Collection type = "Blood culture")
+-  loc_room_desc_src_at_collection (Patient's room information at the blood collection)
+-  disch_disp_desc_src (Discharge disposition)
+-  lab_result (Lab result of the blood collection: Positive/Negative)
+-  med_service_desc_src_at_collection (Medical Service at collection)
+-  nursing_unit_desc_at_collection (Nursing unit name)
+-  nursing_unit_short_desc_at_collection (Nursing unit code description)
+-  organism_1_desc_src (1st organism found in blood collection)
+-  organism_2_desc_src (2nd organism found in blood collection)
+-  organism_3_desc_src (3rd organism found in blood collection)
+-  result_interpretation_desc_src (Lab result interpretation)
+-  specimen_type_desc_src (Lab speciment type description)
+-  doc_set_name_result (Lable for "Central line")
+-  first_catheter_type_result (Central line catheter type)
+-  first_site_result (Body Site of catheter insertion)
+-  name_last (Patient's last name)
+-  name_first (Patient's first name)
+-  gender_desc_src (Gender information)
+-  home_addr_patient_postal_code_forward_sortation_area (First three digits of Patient's postal code)
+
+=== DateTime Columns (YYYY/MM/DD)
+
+-  *admit_dt_tm* (Hospital admission date)
+-  *disch_dt_tm* (Hospital discharge date)
+-  *collection_dt_tm* (Blood collection date)
+-  *beg_effective_dt_tm* (Nursing unit admission date)
+-  *end_effective_dt_tm* (Nursing unit discharge date)
+-  *first_activity_start_dt_tm* (Central line insertion date)
+-  *last_activity_end_dt_tm* (Central line removal date)
+
+
+=== The second sheet
+ 
+==== Int64 fields
+-  *MRN* (Medical Record number)
+-  *result_value* (Temperature reading value)
+
+==== DateTime Columns (YYYY/MM/DD/)
+-  *event_end_dt_tm* (Temperature reading date and time information)
+
 
 ==== Prepare your AWS account
 
