@@ -1,5 +1,5 @@
 #TODO: Line 271 "keep-job-alive-lambda" needs role
-#TODO: All Lambdas need descriptions
+#TODO: All Lambdas need descriptions      
 #TODO: What Lambda function does the preprocesslayer goto
 #TODO: Add QSID - Troy
 #TODO: Adjust Memory/Timeout/Handler/Runtime for all Lambdas
@@ -255,10 +255,10 @@ Resources:
       Code:
         S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/job-creation/lambda.zip'
-      Description:
-      Handler: lambdas.register_metadata_dashboard
+      Description: Creates custom jobs in SageMaker GroundTruth by sending a request
+      Handler: job-creation.lambda_handler
       Role: !Ref JobCreationLambdaExecutionRole
-      MemorySize: 128
+      MemorySize: 512
       Runtime: python3.8
       Timeout: 900
       Layers:  [!Ref numpylayer, !Ref pandaslayer, !Ref boto3layer]
@@ -269,11 +269,11 @@ Resources:
       Code:
         S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/Keep-job-alive/lambda.zip'
-      Description:
-      Handler:
-      Role: !Ref 'RegisterDashboardRoleARN'
+      Description: Re-lunches jobs that are passed 10 days mark and expired.
+      Handler: keep-job-alive.lambda_handler
+      Role: !Ref 'JobCreationLambdaExecutionRole'
       MemorySize: 128
-      Runtime: python3.7
+      Runtime: python3.8
       Timeout: 900
       Layers: [!Ref pandaslayer, !Ref boto3layer]
   loop-Lambda:
@@ -283,11 +283,11 @@ Resources:
       Code:
         S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/loop/lambda.zip'
-      Description:
-      Handler:
+      Description: Reads the Output.manifest and if certain conditions are met, recreates source-csv to re-trigger job-creation lambda.
+      Handler: loop.lambda_handler
       Role: !Ref FeedbackLoopLambdaExecutionRole
-      MemorySize: 128
-      Runtime: python3.7
+      MemorySize: 512
+      Runtime: python3.8
       Timeout: 900
       Layers: [ !Ref pandaslayer, !Ref boto3layer ]
   preprocess-Lambda:
@@ -297,11 +297,11 @@ Resources:
       Code:
         S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/preprocess/lambda.zip'
-      Description:
-      Handler:
+      Description: Takes in bulk patient data, devides into individual patient files and generates plots for them and save to s3.
+      Handler: preprocess.lambda_handler
       Role: !Ref PreProcessLambdaExecutionRole
-      MemorySize: 128
-      Runtime: python3.7
+      MemorySize: 1024
+      Runtime: python3.8
       Timeout: 900
       Layers: [ !Ref mathliblayer, !Ref pandaslayer, !Ref boto3layer ]
   sagemaker-phc-2020-11-16-postprocess-Lambda:
@@ -311,11 +311,11 @@ Resources:
       Code:
         S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/sagemaker-phc-2020-11-16-postprocess/lambda.zip'
-      Description:
-      Handler:
+      Description: Consolidates labels, if there are multiple confilicting label
+      Handler: sagemaker-phc-2020-11-16-postprocess.lambda_handler
       Role: !Ref SageMakerPostprocessLambdaExecutionRole
       MemorySize: 128
-      Runtime: python3.7
+      Runtime: python3.8
       Timeout: 900
       Layers: [ !Ref boto3layer ]
   sagemaker-phc-2020-11-16-preprocess-Lambda:
@@ -325,11 +325,11 @@ Resources:
       Code:
         S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/sagemaker-phc-2020-11-16-preprocess/lambda.zip'
-      Description:
-      Handler:
+      Description: Reads in the task input data-object for the GroundTruth
+      Handler: sagemaker-phc-2020-11-16-preprocess.lambda_handler
       Role: !Ref SageMakerPreprocessLambdaExecutionRole
       MemorySize: 128
-      Runtime: python3.7
+      Runtime: python3.8
       Timeout: 900
 
 Outputs:
