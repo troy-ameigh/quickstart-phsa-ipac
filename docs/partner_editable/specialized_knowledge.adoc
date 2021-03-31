@@ -3,4 +3,8 @@
 // Include links if helpful. 
 // You don't need to list AWS services or point to general info about AWS; the boilerplate already covers this.
 
-This Quick Start also assumes familiarity with <knowledge expectations specific to this Quick Start>.
+// Human readable column names!
+
+This Quick Start also assumes familiarity with AWS CloudFormations , SageMaker GroundTruth, Lambdas, Cloudwatch, IAM, Roles, S3
+
+
