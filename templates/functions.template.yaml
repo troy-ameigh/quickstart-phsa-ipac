@@ -2,6 +2,7 @@
 #TODO: All Lambdas need descriptions
 #TODO: What Lambda function does the preprocesslayer goto
 #TODO: Add QSID - Troy
+#TODO: Adjust Memory/Timeout/Handler/Runtime for all Lambdas
 
 
 AWSTemplateFormatVersion: "2010-09-09"
@@ -258,7 +259,7 @@ Resources:
       Handler: lambdas.register_metadata_dashboard
       Role: !Ref JobCreationLambdaExecutionRole
       MemorySize: 128
-      Runtime: python3.7
+      Runtime: python3.8
       Timeout: 900
       Layers:  [!Ref numpylayer, !Ref pandaslayer, !Ref boto3layer]
   keep-job-alive-Lambda:
