@@ -1,0 +1,10 @@
+// Replace the content in <>
+// For example: “familiarity with basic concepts in networking, database operations, and data encryption” or “familiarity with <software>.”
+// Include links if helpful. 
+// You don't need to list AWS services or point to general info about AWS; the boilerplate already covers this.
+
+// Human readable column names!
+
+This Quick Start also assumes familiarity with AWS CloudFormations , SageMaker GroundTruth, Lambdas, Cloudwatch, IAM, Roles, S3
+
+

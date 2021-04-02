@@ -1,0 +1,347 @@
+#TODO: Line 271 "keep-job-alive-lambda" needs role
+#TODO: All Lambdas need descriptions      
+#TODO: What Lambda function does the preprocesslayer goto
+#TODO: Add QSID - Troy
+#TODO: Adjust Memory/Timeout/Handler/Runtime for all Lambdas
+
+
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Deploys Lambda functions required for the PHSA IPAC Quick Start (qs-)
+Parameters:
+  QSS3BucketName:
+    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
+    ConstraintDescription: Quick Start bucket name can include numbers, lowercase
+      letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
+      (-).
+    Default: aws-quickstart
+    Description: S3 bucket name for the Quick Start assets. This string can include
+      numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start
+      or end with a hyphen (-).
+    Type: String
+  QSS3KeyPrefix:
+    AllowedPattern: ^[0-9a-zA-Z-/]*$
+    ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), and forward slash (/).
+    Description: S3 key prefix for the Quick Start assets. Quick Start key prefix
+      can include numbers, lowercase letters, uppercase letters, hyphens (-), and
+      forward slash (/).
+    Type: String
+    Default: quickstart-phsa-ipac/
+  QSS3BucketRegion:
+    Default: 'us-east-1'
+    Description: "The AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value."
+    Type: String
+  DestinationBucket:
+    Type: String
+    Default: ""
+Conditions:
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
+  CreateDestBucket: !Equals [!Ref DestinationBucket, ""]
+Resources:
+  LambdaZipsBucket:
+    Condition: CreateDestBucket
+    Type: "AWS::S3::Bucket"
+  CopyZipsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ConfigPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: Logging
+                Effect: Allow
+                Action: logs:*
+                Resource: '*'
+              - Sid: S3Get
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource: !Sub
+                  - arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}*
+                  - S3Bucket: !If [ UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName ]
+              - Sid: S3Put
+                Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource: !Sub
+                  - "arn:aws:s3:::${DestBucket}/*"
+                  - DestBucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
+  CopyZips:
+    Type: Custom::CopyZips
+    Properties:
+      ServiceToken: !GetAtt 'CopyZipsFunction.Arn'
+      DestBucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
+      SourceBucket: !If [ UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName ]
+      Prefix: !Ref 'QSS3KeyPrefix'
+      Objects:
+        - functions/packages/job-creation/lambda.zip
+        - functions/packages/keep-job-alive/lambda.zip
+        - functions/packages/loop/lambda.zip
+        - functions/packages/preprocesslayer/lambda.zip
+        - functions/packages/sagemaker-phc-2020-11-16-postprocess/lambda.zip
+        - functions/packages/sagemaker-phc-2020-11-16-preprocesslayer/lambda.zip
+        - functions/packages/mathliblayer/lambda.zip
+        - functions/packages/numpylayer/lambda.zip
+        - functions/packages/pandaslayer/lambda.zip
+        - functions/packages/preprocesslayer/lambda.zip
+  CopyZipsFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Copies objects from a source S3 bucket to a destination
+      Handler: index.handler
+      Runtime: python3.7
+      Role: !GetAtt CopyZipsRole.Arn
+      Timeout: 900
+      Code:
+        ZipFile: |
+          import cfnresponse
+          import logging
+          import boto3
+          logger = logging.getLogger(__name__)
+          def copy_objects(source_bucket, dest_bucket, prefix, objects):
+              s3 = boto3.client('s3')
+              for o in objects:
+                  key = prefix + o
+                  copy_source = {'Bucket': source_bucket, 'Key': key}
+                  logging.info(f'copy_source: {copy_source}\ndest_bucket: {dest_bucket}\nkey: {key}')
+                  s3.copy_object(CopySource=copy_source, Bucket=dest_bucket, Key=key)
+          def delete_objects(bucket, prefix, objects):
+              s3 = boto3.client('s3')
+              objects = {'Objects': [{'Key': prefix + o} for o in objects]}
+              try:
+                  s3.delete_objects(Bucket=bucket, Delete=objects)
+              except s3.exceptions.NoSuchBucket:
+                  pass
+          def handler(event, context):
+              logger.debug(event)
+              status = cfnresponse.SUCCESS
+              try:
+                  if event['RequestType'] == 'Delete':
+                      delete_objects(event['ResourceProperties']['DestBucket'], event['ResourceProperties']['Prefix'],
+                                     event['ResourceProperties']['Objects'])
+                  else:
+                      copy_objects(event['ResourceProperties']['SourceBucket'], event['ResourceProperties']['DestBucket'],
+                                   event['ResourceProperties']['Prefix'], event['ResourceProperties']['Objects'])
+              except Exception:
+                  logging.error('Unhandled exception', exc_info=True)
+                  status = cfnresponse.FAILED
+              finally:
+                  cfnresponse.send(event, context, status, {}, None)
+  PreProcessLambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  JobCreationLambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:${AWS::Partition}:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+  FeedbackLoopLambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  SageMakerPreprocessLambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  SageMakerPostprocessLambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  boto3layer:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      Content:
+        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/boto3layer/lambda.zip'
+  mathliblayer:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      Content:
+        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/mathliblayer/lambda.zip'
+  numpylayer:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      Content:
+        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/numpylayer/lambda.zip'
+  pandaslayer:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      Content:
+        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/pandaslayer/lambda.zip'
+  preprocesslayer:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      Content:
+        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/preprocesslayer/lambda.zip'
+  JobCreationLambda:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/job-creation/lambda.zip'
+      Description: Creates custom jobs in SageMaker GroundTruth by sending a request
+      Handler: job-creation.lambda_handler
+      Role: !Ref JobCreationLambdaExecutionRole
+      MemorySize: 512
+      Runtime: python3.8
+      Timeout: 900
+      Layers:  [!Ref numpylayer, !Ref pandaslayer, !Ref boto3layer]
+  keep-job-alive-Lambda:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/Keep-job-alive/lambda.zip'
+      Description: Re-lunches jobs that are passed 10 days mark and expired.
+      Handler: keep-job-alive.lambda_handler
+      Role: !Ref 'JobCreationLambdaExecutionRole'
+      MemorySize: 128
+      Runtime: python3.8
+      Timeout: 900
+      Layers: [!Ref pandaslayer, !Ref boto3layer]
+  loop-Lambda:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/loop/lambda.zip'
+      Description: Reads the Output.manifest and if certain conditions are met, recreates source-csv to re-trigger job-creation lambda.
+      Handler: loop.lambda_handler
+      Role: !Ref FeedbackLoopLambdaExecutionRole
+      MemorySize: 512
+      Runtime: python3.8
+      Timeout: 900
+      Layers: [ !Ref pandaslayer, !Ref boto3layer ]
+  preprocess-Lambda:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/preprocess/lambda.zip'
+      Description: Takes in bulk patient data, devides into individual patient files and generates plots for them and save to s3.
+      Handler: preprocess.lambda_handler
+      Role: !Ref PreProcessLambdaExecutionRole
+      MemorySize: 1024
+      Runtime: python3.8
+      Timeout: 900
+      Layers: [ !Ref mathliblayer, !Ref pandaslayer, !Ref boto3layer ]
+  sagemaker-phc-2020-11-16-postprocess-Lambda:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/sagemaker-phc-2020-11-16-postprocess/lambda.zip'
+      Description: Consolidates labels, if there are multiple confilicting label
+      Handler: sagemaker-phc-2020-11-16-postprocess.lambda_handler
+      Role: !Ref SageMakerPostprocessLambdaExecutionRole
+      MemorySize: 128
+      Runtime: python3.8
+      Timeout: 900
+      Layers: [ !Ref boto3layer ]
+  sagemaker-phc-2020-11-16-preprocess-Lambda:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/sagemaker-phc-2020-11-16-preprocess/lambda.zip'
+      Description: Reads in the task input data-object for the GroundTruth
+      Handler: sagemaker-phc-2020-11-16-preprocess.lambda_handler
+      Role: !Ref SageMakerPreprocessLambdaExecutionRole
+      MemorySize: 128
+      Runtime: python3.8
+      Timeout: 900
+
+Outputs:
+  PreProcessLambdaExecutionRole:
+    Value: !GetAtt PreProcessLambdaExecutionRole.Arn
+  JobCreationLambdaExecutionRole:
+    Value: !GetAtt PreProcessLambdaExecutionRole.Arn
+  FeedbackLoopLambdaExecutionRole:
+    Value: !GetAtt PreProcessLambdaExecutionRole.Arn
+  SageMakerPreprocessLambdaExecutionRole:
+    Value: !GetAtt PreProcessLambdaExecutionRole.Arn
+  SageMakerPostprocessLambdaExecutionRole:
+    Value: !GetAtt SageMakerPostprocessLambdaExecutionRole.Arn
+  LambdaZipsBucket:
+    Value: !Ref LambdaZipsBucket
