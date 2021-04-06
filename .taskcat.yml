@@ -1,0 +1,25 @@
+project:
+  name: quickstart-phsa-ipac
+  owner: quickstart@amazon.com
+  package_lambda: true
+  regions:
+    - us-east-1
+    - us-east-2
+    - us-west-1
+    - us-west-2
+    - ca-central-1
+  s3_bucket: ''
+  template: templates/ipac-pipeline-entrypoint.template.yaml
+tests:
+  ipac-pipeline-default:
+    parameters:
+      KeyPairName: $[taskcat_getkeypair]
+      QSS3BucketName: $[taskcat_autobucket]
+      QSS3BucketRegion: $[taskcat_current_region]
+      QSS3KeyPrefix: quickstart-phsa-ipac/
+      DeploymentTargetAccount:
+      Environment: dev
+      Region: $[taskcat_current_region]
+      SageMakerPrivateWorkTeamArn: arn:aws:sagemaker:ca-central-1:165536952993:workteam/private-crowd/digitalproducts-ipac
+    regions:
+    - us-east-1

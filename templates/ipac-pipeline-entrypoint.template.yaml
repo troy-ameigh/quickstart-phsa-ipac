@@ -1,5 +1,3 @@
-#TODO: Line 157-214 Parameters need remediated now that we have a functions template.
-# Will also need to clean up labels based on above line.
 #TODO: Add output section at end of file to specific output bucket for processed data.
 #TODO: Need better template description Line 8
 
@@ -16,39 +14,8 @@ Metadata:
           # - PipelineName
           - RepositoryName
           - RepositoryBranchName
-          - RuntimeVersion
-          - JobCreationLambdaName
-          - PreprocessLambdaName
-          - FeedbackLoopLambdaName
-          - SageMakerPreprocessLambdaName
-          - SageMakerPostprocessLambdaName
           - Suffix
-          - JobCreationLambdaZip
-          - PreprocessLambdaZip
-          - FeedbackLoopLambdaZip
-          - SageMakerPreprocessLambdaZip
-          - SageMakerPostprocessLambdaZip
-          - JobCreationLambdaTimeOut
-          - PreprocessLambdaTimeOut
-          - FeedbackLoopLambdaTimeOut
-          - SageMakerPreprocessLambdaTimeOut
-          - SageMakerPostprocessLambdaTimeOut
-          - JobCreationLambdaMemorySize
-          - PreprocessLambdaMemorySize
-          - FeedbackLoopLambdaMemorySize
-          - SageMakerPreprocessLambdaMemorySize
-          - SageMakerPostprocessLambdaMemorySize
           - DeploymentTargetAccount
-          - JobCreationLambdaHandler
-          - PreprocessLambdaHandler
-          - FeedbackLoopLambdaHandler
-          - SageMakerPreprocessLambdaHandler
-          - SageMakerPostprocessLambdaHandler
-          - MatplotlibLayerName
-          - NumpyLayerName
-          - PandasLayerName
-          - PreProcessLayerName
-
       - Label:
           default: Deployment parameters
         Parameters:
@@ -86,7 +53,6 @@ Metadata:
         default: "What is the compute environment for this application, including environmental variables?"
       Region:
         default: "Which Region to use for this deployment?"
-
       SageMakerPrivateWorkTeamArn:
         default: "What is the ARN of the SageMaker private workforce team?"
       Suffix:
@@ -110,6 +76,7 @@ Parameters:
   RepositoryName:
     Type: String
     Description: The CodeCommit repository name where the source code is located.
+    Default: phc-ipac-clabsi
   RepositoryBranchName:
     Type: String
     Default: main
@@ -117,108 +84,25 @@ Parameters:
   ApplicationName:
     Type: String
     Description: Application name.
+    Default: phc-ipac-clabsi
   Environment:
     Type: String
     Description: Environment variables that are accessible from function code during execution.
+    AllowedValues:
+      - 'dev'
+      - 'stage'
+      - 'prod'
+    Default: 'dev'
   Region:
     Type: String
     Description: AWS Regions.
-  RuntimeVersion:
-    Type: String
-    Description: Runtime version.
-  JobCreationLambdaName:
-    Type: String
-    Description: The name of the lambda function.
-  PreprocessLambdaName:
-    Type: String
-    Description: The name of the lambda function.
-  FeedbackLoopLambdaName:
-    Type: String
-    Description: The name of the lambda function.
-  SageMakerPreprocessLambdaName:
-    Type: String
-    Description: The name of the lambda function.
-  SageMakerPostprocessLambdaName:
-    Type: String
-    Description: The name of the lambda function.
-  MatplotlibLayerName:
-    Type: String
-    Description: The Matplotlib layer name.
-  NumpyLayerName:
-    Type: String
-    Description: The Numpy layer name.
-  PandasLayerName:
-    Type: String
-    Description: Pandas layer name.
-  PreProcessLayerName:
-    Type: String
-    Description: The name of the pre-process layer.
   Suffix:
     Type: String
     Description: Suffix value for the file that triggers pre-process lambda.
+    Default: '-7'
   SageMakerPrivateWorkTeamArn:
     Type: String
     Description: The Sagemaker private workforce - private team ARN.
-  JobCreationLambdaHandler:
-    Type: String
-    Description: Lambda handler for the job creation lambda.
-  PreprocessLambdaHandler:
-    Type: String
-    Description: Lambda handler for the Preprocess lambda.
-  FeedbackLoopLambdaHandler:
-    Type: String
-    Description: Lambda handler for the feedback lambda.
-  SageMakerPreprocessLambdaHandler:
-    Type: String
-    Description: Lambda handler for the Sagemaker pre-process lambda.
-  SageMakerPostprocessLambdaHandler:
-    Type: String
-    Description: Lambda handler for the Sagemaker post-process lambda.
-  JobCreationLambdaZip:
-    Type: String
-    Description: The build package for JobCreationLambda.
-  PreprocessLambdaZip:
-    Type: String
-    Description: The build package for PreprocessLambda.
-  FeedbackLoopLambdaZip:
-    Type: String
-    Description: The build package for FeedbackLoopLambda.
-  SageMakerPreprocessLambdaZip:
-    Type: String
-    Description: The build package for SageMakerPreprocessLambda.
-  SageMakerPostprocessLambdaZip:
-    Type: String
-    Description: The build package for SageMakerPostprocessLambda.
-  JobCreationLambdaTimeOut:
-    Type: String
-    Description: Job creation lambda time-out.
-  PreprocessLambdaTimeOut:
-    Type: String
-    Description: Pre-process lambda time-out.
-  FeedbackLoopLambdaTimeOut:
-    Type: String
-    Description: Feedback loop lambda time-out.
-  SageMakerPreprocessLambdaTimeOut:
-    Type: String
-    Description: Pre-process lambda time-out.
-  SageMakerPostprocessLambdaTimeOut:
-    Type: String
-    Description: The Sagemaker post-process lambda time-out.
-  JobCreationLambdaMemorySize:
-    Type: String
-    Description: Job-creation-lambda memory allocation.
-  PreprocessLambdaMemorySize:
-    Type: String
-    Description: Pre-process-lambda memory allocation.
-  FeedbackLoopLambdaMemorySize:
-    Type: String
-    Description: Feedback-loop-lambda memory allocation.
-  SageMakerPreprocessLambdaMemorySize:
-    Type: String
-    Description: The Sagemaker pre-process lambda memory allocation.
-  SageMakerPostprocessLambdaMemorySize:
-    Type: String
-    Description: The Sagemaker post-process lambda memory allocation.
   DeploymentTargetAccount:
     Type: String
     Description: Account id for the target AWS account.
@@ -689,16 +573,8 @@ Resources:
               Ref: ProcessingBucket
           - Name: patient_folder
             Value: "source-csv"
-          - Name: RUNTIME
-            Value: !Ref RuntimeVersion
           - Name: REGION
             Value: !Ref Region
-          - Name: JobCreationLambdaName
-            Value: !Ref JobCreationLambdaName
-          - Name: PreprocessLambdaName
-            Value: !Ref PreprocessLambdaName
-          - Name: FeedbackLoopLambdaName
-            Value: !Ref FeedbackLoopLambdaName
           - Name: ProcessingBucketName
             Value: !Ref ProcessingBucket
           - Name: ProcessingBucketArn
@@ -743,73 +619,21 @@ Resources:
             Value: !Ref ProcessingBucket
           - Name: REPORTING_FOLDER
             Value: for_reporting
-          - Name: MatplotlibLayerName
-            Value: !Ref MatplotlibLayerName
           - Name: DeploymentTargetAccount
             Value: !Ref DeploymentTargetAccount
           # - Name: MathlibLayerArn
           #   Value:
           #     Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MatplotlibLayerName, Ref: Suffix ]  ]
-          - Name: NumpyLayerName
-            Value: !Ref NumpyLayerName
           # - Name: NumpyLayerArn
           #   Value:
           #     Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MatplotlibLayerName, Ref: Suffix ]  ]
-          - Name: PandasLayerName
-            Value: !Ref PandasLayerName
-          - Name: PreProcessLayerName
-            Value: !Ref PreProcessLayerName
           # - Name: PandasLayerArn
           #   Value:
           #     Fn::Join: [ '', [ 'arn:${AWS::Partition}:lambda:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', 'layer', ':', Ref: MatplotlibLayerName, Ref: Suffix ]  ]
           - Name: SUFFIX
             Value: !Ref Suffix
-          - Name: JOB_CREATION_HANDLER
-            Value: !Ref JobCreationLambdaHandler
-          - Name: PREPROCESS_HANDLER
-            Value: !Ref PreprocessLambdaHandler
-          - Name: FEEDBACK_LOOP_HANDLER
-            Value: !Ref FeedbackLoopLambdaHandler
-          - Name: SAGEMAKER_PREPROCESS_HANDLER
-            Value: !Ref SageMakerPreprocessLambdaHandler
-          - Name: SAGEMAKER_POSTPROCESS_HANDLER
-            Value: !Ref SageMakerPostprocessLambdaHandler
           - Name: FEEDBACK_BUCKET
             Value: !Ref ProcessingBucket
-          - Name: PreprocessLambdaZip
-            Value: !Ref PreprocessLambdaZip
-          - Name: JobCreationLambdaZip
-            Value: !Ref JobCreationLambdaZip
-          - Name: FeedbackLoopLambdaZip
-            Value: !Ref FeedbackLoopLambdaZip
-          - Name: SageMakerPreprocessLambdaZip
-            Value: !Ref SageMakerPreprocessLambdaZip
-          - Name: SageMakerPostprocessLambdaZip
-            Value: !Ref SageMakerPostprocessLambdaZip
-          - Name: SageMakerPreprocessLambdaName
-            Value: !Ref SageMakerPreprocessLambdaName
-          - Name: SageMakerPostprocessLambdaName
-            Value: !Ref SageMakerPostprocessLambdaName
-          - Name: JobCreationLambdaTimeOut
-            Value: !Ref JobCreationLambdaTimeOut
-          - Name: PreprocessLambdaTimeOut
-            Value: !Ref PreprocessLambdaTimeOut
-          - Name: FeedbackLoopLambdaTimeOut
-            Value: !Ref FeedbackLoopLambdaTimeOut
-          - Name: SageMakerPreprocessLambdaTimeOut
-            Value: !Ref SageMakerPreprocessLambdaTimeOut
-          - Name: SageMakerPostprocessLambdaTimeOut
-            Value: !Ref SageMakerPostprocessLambdaTimeOut
-          - Name: JobCreationLambdaMemorySize
-            Value: !Ref JobCreationLambdaMemorySize
-          - Name: PreprocessLambdaMemorySize
-            Value: !Ref PreprocessLambdaMemorySize
-          - Name: FeedbackLoopLambdaMemorySize
-            Value: !Ref FeedbackLoopLambdaMemorySize
-          - Name: SageMakerPreprocessLambdaMemorySize
-            Value: !Ref SageMakerPreprocessLambdaMemorySize
-          - Name: SageMakerPostprocessLambdaMemorySize
-            Value: !Ref SageMakerPostprocessLambdaMemorySize
       ServiceRole:
         Ref: CodeBuildServiceRole
       Source:
