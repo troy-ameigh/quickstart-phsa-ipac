@@ -1,8 +1,5 @@
-#TODO: Add QSID - Troy
-
-
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Deploys Lambda functions required for the PHSA IPAC Quick Start (qs-)
+Description: Deploys Lambda functions required for the PHSA IPAC Quick Start (qs-1romd7rj8)
 Parameters:
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$

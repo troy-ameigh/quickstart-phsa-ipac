@@ -770,3 +770,7 @@ Resources:
             Fn::GetAtt: [ EventBridgeEventRole, Arn ]
           Id:
             Fn::Sub: "${RepositoryName}-${RepositoryBranchName}"
+Outputs:
+  ArtifactsStoreBucket:
+    Description: This is the Bucket for the Artifact Store
+    Value: !Ref ArtifactsStoreBucket
