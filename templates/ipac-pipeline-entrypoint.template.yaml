@@ -1,5 +1,7 @@
 #TODO: Add output section at end of file to specific output bucket for processed data.
 #TODO: Need better template description Line 8
+#TODO: Add in SES for PROD builds
+#TODO: Add in Cognito and WorkTeam - Troy
 
 
 
