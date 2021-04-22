@@ -64,10 +64,10 @@ Resources:
                   - s3:DeleteObject
                 Resource:
                   - !Sub
-                    - arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}
+                    - "arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}"
                     - S3Bucket: !If [ UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName ]
                   - !Sub
-                    - arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}*
+                    - "arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}*"
                     - S3Bucket: !If [ UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName ]
               - Sid: S3Dest
                 Effect: Allow
@@ -93,12 +93,13 @@ Resources:
       SourceBucket: !If [ UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName ]
       Prefix: !Ref 'QSS3KeyPrefix'
       Objects:
+        - functions/packages/boto3layer/lambda.zip
         - functions/packages/job-creation/lambda.zip
-        - functions/packages/keep-job-alive/lambda.zip
+        - functions/packages/Keep-job-alive/lambda.zip
         - functions/packages/loop/lambda.zip
-        - functions/packages/preprocesslayer/lambda.zip
+        - functions/packages/preprocess/lambda.zip
         - functions/packages/sagemaker-phc-2020-11-16-postprocess/lambda.zip
-        - functions/packages/sagemaker-phc-2020-11-16-preprocesslayer/lambda.zip
+        - functions/packages/sagemaker-phc-2020-11-16-preprocess/lambda.zip
         - functions/packages/mathliblayer/lambda.zip
         - functions/packages/numpylayer/lambda.zip
         - functions/packages/pandaslayer/lambda.zip
@@ -236,42 +237,42 @@ Resources:
     Type: AWS::Lambda::LayerVersion
     Properties:
       Content:
-        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/boto3layer/lambda.zip'
   mathliblayer:
     DependsOn: CopyZips
     Type: AWS::Lambda::LayerVersion
     Properties:
       Content:
-        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/mathliblayer/lambda.zip'
   numpylayer:
     DependsOn: CopyZips
     Type: AWS::Lambda::LayerVersion
     Properties:
       Content:
-        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/numpylayer/lambda.zip'
   pandaslayer:
     DependsOn: CopyZips
     Type: AWS::Lambda::LayerVersion
     Properties:
       Content:
-        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/pandaslayer/lambda.zip'
   preprocesslayer:
     DependsOn: CopyZips
     Type: AWS::Lambda::LayerVersion
     Properties:
       Content:
-        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/preprocesslayer/lambda.zip'
   JobCreationLambda:
     DependsOn: CopyZips
     Type: AWS::Lambda::Function
     Properties:
       Code:
-        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/job-creation/lambda.zip'
       Description: Creates custom jobs in SageMaker GroundTruth by sending a request
       Handler: job-creation.lambda_handler
@@ -285,7 +286,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Code:
-        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/Keep-job-alive/lambda.zip'
       Description: Re-lunches jobs that are passed 10 days mark and expired.
       Handler: keep-job-alive.lambda_handler
@@ -299,7 +300,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Code:
-        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/loop/lambda.zip'
       Description: Reads the Output.manifest and if certain conditions are met, recreates source-csv to re-trigger job-creation lambda.
       Handler: loop.lambda_handler
@@ -313,21 +314,21 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Code:
-        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/preprocess/lambda.zip'
       Description: Takes in bulk patient data, devides into individual patient files and generates plots for them and save to s3.
       Handler: preprocess.lambda_handler
       Role: !GetAtt PreProcessLambdaExecutionRole.Arn
-      MemorySize: 1024
+      MemorySize: 2048
       Runtime: python3.8
       Timeout: 900
-      Layers: [ !Ref mathliblayer, !Ref pandaslayer, !Ref boto3layer ]
+      Layers: [ !Ref preprocesslayer ]
   SagemakerphcpostprocessLambda:
     DependsOn: CopyZips
     Type: AWS::Lambda::Function
     Properties:
       Code:
-        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/sagemaker-phc-2020-11-16-postprocess/lambda.zip'
       Description: Consolidates labels, if there are multiple confilicting label
       Handler: sagemaker-phc-2020-11-16-postprocess.lambda_handler
@@ -341,7 +342,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Code:
-        S3Bucket: !GetAtt CopyZips.Outputs.LambdaZipsBucket
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/sagemaker-phc-2020-11-16-preprocess/lambda.zip'
       Description: Reads in the task input data-object for the GroundTruth
       Handler: sagemaker-phc-2020-11-16-preprocess.lambda_handler
