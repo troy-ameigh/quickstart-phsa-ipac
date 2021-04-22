@@ -81,8 +81,7 @@ def plot_timeline(dataframe, patient):
         'med_service_desc_src_at_collection',
         'nursing_unit_desc_at_collection',
         'nursing_unit_short_desc_at_collection',
-        'organism_1_desc_src','organism_2_desc_src',
-        'organism_3_desc_src',
+        'organism',
         'result_interpretation_desc_src',
         'specimen_type_desc_src', 'transfer_in_to_collect',
         'transfer_out_to_collect','ce_dynamic_label_id',
@@ -137,19 +136,12 @@ def plot_timeline(dataframe, patient):
     # thus same organism found can be shown as the same color
     unique_organisms = []
     for index in dataframe.index:
-        organism = '\n'.join([
-            dataframe.loc[
-                index,
-                'organism_{}_desc_src'.format(
-                    number)] for number in range(1, 4)])
-        if organism not in unique_organisms:
-            unique_organisms.append(organism)
+        organism = dataframe.loc[index, 'organism']
+        unique_organisms.append(organism)
     # Iterate through all records and add them to the plot
     for index in dataframe.index:
         # Organism found for this record
-        organism = '\n'.join([
-            dataframe.loc[index, 'organism_{}_desc_src'.format(number)]
-            for number in range(1, 4)])
+        organism = dataframe.loc[index, 'organism']
 
         # Calcululate the relative date from admission
         day = {
@@ -240,7 +232,7 @@ def plot_timeline(dataframe, patient):
                         markersize=14,
                         linestyle='',
                         color=plt.cm.tab10(unique_organisms.index(organism)),
-                        label=organism,
+                        label=organism.replace(', ', "\n"),
                     )
                     plotted_organisms.append(organism)
                 else:
@@ -384,7 +376,7 @@ def generate_iwp_plot(dataframe, temperature, plot_index, patient):
 
     for temperature_index in temperature.index:
         temp_date = temperature.loc[temperature_index, 'event_end_dt_tm']
-        value = temperature.loc[temperature_index, 'result_value']
+        value = temperature.loc[temperature_index, 'result_val']
         try:
             # Above limit the marker is red
             if value < temperature_limit:
@@ -463,11 +455,8 @@ def generate_iwp_plot(dataframe, temperature, plot_index, patient):
             markersize=16
         )
     # Corresponding organism
-    organism_information = '\n'.join((
-        dataframe.loc[plot_index, 'organism_1_desc_src'],
-        dataframe.loc[plot_index, 'organism_2_desc_src'],
-        dataframe.loc[plot_index, 'organism_3_desc_src'],
-    ))
+    organism_information = dataframe.loc[plot_index, 'organism']
+
     axis[1].text(
         collection_date - datetime.timedelta(days=1.2),
         0.65,
@@ -518,6 +507,44 @@ def generate_iwp_plot(dataframe, temperature, plot_index, patient):
 
     return True
 
+def preprocess(obj):
+
+    '''
+    Recieves s3 object from boto3, converts to excell sheet,
+    and then converts to 3 dataframes.
+    changes the dataframes column names to lower case,
+    and joins organism dataframe with patient dataframe.
+    ----------
+    fieldname : obj
+    fieldname: s3 object
+    Returns
+    -------
+    dataframe for patients, dataframe for temperature
+    '''
+
+    data = obj['Body'].read()
+    xls = pd.ExcelFile(data)
+    dataframe_patients = pd.read_excel(xls, 'Sheet1')
+    dataframe_temperature = pd.read_excel(xls, 'Sheet2')
+    dataframe_organism = pd.read_excel(xls, 'Sheet3')
+    dataframe_patients.rename(str.lower, axis='columns',inplace=True)
+    dataframe_temperature.rename(str.lower, axis='columns',inplace=True)
+    dataframe_organism.rename(str.lower, axis='columns', inplace=True)
+
+    if 'Unnamed: 0' in dataframe_patients.columns:
+        dataframe_patients.drop(columns='Unnamed: 0', inplace=True)
+    if 'Unnamed: 0' in dataframe_temperature.columns:
+        dataframe_temperature.drop(columns='Unnamed: 0', inplace=True)
+    if 'Unnamed: 0' in dataframe_organism.columns:
+        dataframe_organism.drop(columns='Unnamed: 0', inplace=True)
+
+    dataframe_organism.set_index(['mrn', 'encntr_num'], inplace=True)
+    for i in dataframe_patients.index:
+        mrn = dataframe_patients.loc[i,'mrn']
+        enct_num = dataframe_patients.loc[i, 'encntr_num']
+        dataframe_patients.loc[i, 'organism'] = " , ".join(dataframe_organism.loc[(mrn,enct_num),'organism_desc_src'].unique())
+
+    return dataframe_patients, dataframe_temperature
 
 def lambda_handler(event, context):
     '''
@@ -551,9 +578,7 @@ def lambda_handler(event, context):
     bucket = event['Records'][0]['s3']['bucket']['name']
     key = event['Records'][0]['s3']['object']['key']
     obj = s3_client.get_object(Bucket=bucket, Key=key)
-    data = pd.read_excel(obj['Body'].read(), sheet_name=[0, 1])
-    dataframe_patients = data[0]
-    dataframe_temperature = data[1]
+    dataframe_patients, dataframe_temperature = preprocess(obj)
 
     try:
         for patient in dataframe_patients['mrn'].unique():

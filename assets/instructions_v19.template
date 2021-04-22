@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>IPAC-CLABSI</title>
+
+    <script src="https://assets.crowd.aws/crowd-html-elements.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- Popper JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+
+<style>
+
+.pt-3-half {
+padding-top: 1.4rem;
+}
+
+/* The container */
+.container {
+  display: block;
+  position: relative;
+  padding-left: 35px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  font-size: 18px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Hide the browser's default radio button */
+.container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Create a custom radio button */
+.checkmark {
+  position: absolute;
+  top: 5;
+  left: 0;
+  height: 18px;
+  width: 18px;
+  background-color: #eee;
+  border-radius: 50%;
+}
+
+/* On mouse-over, add a grey background color */
+.container:hover input ~ .checkmark {
+  background-color: #ccc;
+}
+
+/* When the radio button is checked, add a blue background */
+.container input:checked ~ .checkmark {
+  background-color: #2196F3;
+}
+
+/* Create the indicator (the dot/circle - hidden when not checked) */
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the indicator (dot/circle) when checked */
+.container input:checked ~ .checkmark:after {
+  display: block;
+}
+
+/* Style the indicator (dot/circle) */
+.container .checkmark:after {
+ 	top: 6px;
+	left: 6px;
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: white;
+}
+
+
+/* Customize the label (the container) */
+.infection-label {
+  display: block;
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  font-size: 18px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Hide the browser's default checkbox */
+.infection-label input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Create a custom checkbox */
+.infection-checkmark {
+  position: absolute;
+  top: 4;
+  left: 0;
+  height: 18px;
+  width: 18px;
+  background-color: #eee;
+}
+
+/* On mouse-over, add a grey background color */
+.infection-label:hover input ~ .infection-checkmark {
+  background-color: #ccc;
+}
+
+/* When the checkbox is checked, add a blue background */
+.infection-label input:checked ~ .infection-checkmark {
+  background-color: #2196F3;
+}
+
+/* Create the checkmark/indicator (hidden when not checked) */
+.infection-checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the checkmark when checked */
+.infection-label input:checked ~ .infection-checkmark:after {
+  display: block;
+}
+
+/* Style the checkmark/indicator */
+.infection-label .infection-checkmark:after {
+  left: 7px;
+  top: 4px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+
+.check-label {
+  margin-top: 12px;
+}
+
+.clickme {
+    background-color:#FFFFFF;
+    color: #000000;
+    padding: 12px 20px;
+    font-size: 18px;
+    text-decoration:none;
+    cursor:pointer;
+}
+
+.clickme:hover, .clickme.active {
+    background-color:rgba(0,0,0,.03);
+    color: #000000;
+    text-decoration: none;
+}
+
+.iwp {
+    padding: 6px 20px;
+}
+
+#pathogens {
+    padding-left: 50px;
+}
+
+.pad-left {
+    padding-left: 25px;
+}
+
+#header {
+    height: 60px;
+    width: 100%;
+    text-align: right;
+    display: inline-block;
+    background: #535ba0;
+    box-sizing: border-box;
+    margin: auto;
+}
+
+#header p1 {
+    font-size: 36px;
+    text-transform: uppercase;
+    color: #fff;
+    font-weight: 700;
+    margin-right: 100px;
+    border-top: 30px;
+}
+
+.main-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.pullin {
+    padding-left: 50px;
+    padding-bottom: 30px;
+}
+
+.comment_on_iwp {
+    padding-top: 15px;
+}
+
+</style>
+
+<body>
+
+<crowd-form>
+
+    <div id="header">
+        <p1>IPAC-CLABSI</p1>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Editable table -->
+            <div class="card col-sm-3">
+
+                <h3 class="card-header text-center font-weight-bold text-uppercase py-4">Patient information</h3>
+
+                <div class="form-group" id="record_selectior">
+                    <label for="sel2">Select a blood collection date:</label>
+                    <select name="encounter" class="form-control" id="encounter-select">
+                        <option value="" selected disabled hidden>Choose here</option>
+                         {% for record in task.input.table %}
+                            <option value={{ record[0] }}>Blood collection {{ record[0] }}</option>
+                         {% endfor %}
+                    </select>
+                </div>
+                {% for collection in task.input.table %}
+                    {% assign date = collection[0] %}
+                    {% assign encounter = collection[1] %}
+                    <div class="card-body encounter-table {{ date }}">
+                        <label>Information for blood collection on {{ date }}</label>
+                        <div id="table" name="table" class="table-editable">
+                            <table class="table table-bordered table-responsive-md table-striped text-left main-table">
+                                <tbody>
+                                    {% for fieldinfo in encounter %}
+                                        {% assign fieldname = fieldinfo[0] %}
+                                        {% assign value = fieldinfo[1] %}
+                                        <tr>
+                                            <td  class="text-left">{{ fieldname }}</td>
+                                            <td class="pt-3-half" name={{ fieldname }} contenteditable="true">{{ value }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <!-- Editable table end -->
+
+            <div class="card col-sm-9">
+
+                <h3 class="card-header text-center font-weight-bold text-uppercase py-4">TimeLine</h3>
+
+                <!-- Timeline plot -->
+                <div class="row">
+                    <div class="card-body">
+                        <img class="img-fluid" src={{ task.input.sourcetimelineimg | grant_read_access }} alt="Timeline">
+                    </div>
+                </div>
+                <!-- Timeline plot end -->
+
+                <div class="row">
+
+                    <div class="card col-sm-6">
+                        <!-- Decision box -->
+                        <div class="card">
+                            <h3 class="card-header text-center font-weight-bold text-uppercase py-4">Pathogen</h3>
+                            <div class="card-body">
+
+                                <label for="sel1">Select the pathogen:</label>
+                                <select name="pathogen" class="form-control" id="pathogen">
+                                    <option value="" selected disabled hidden>Choose here</option>
+                                    <option value="p00" {% if task.input.pathogen == "p00" %}selected {% endif %}>Acinetobacter baumannii</option>
+                                    <option value="p01" {% if task.input.pathogen == "p01" %}selected {% endif %}>Baceroides fragilis</option>
+                                    <option value="p02" {% if task.input.pathogen == "p02" %}selected {% endif %}>Burkholderia cepacia</option>
+                                    <option value="p03" {% if task.input.pathogen == "p03" %}selected {% endif %}>Candida albicans</option>
+                                    <option value="p04" {% if task.input.pathogen == "p04" %}selected {% endif %}>Candida giabrata</option>
+                                    <option value="p05" {% if task.input.pathogen == "p05" %}selected {% endif %}>Candida parapsilosis</option>
+                                    <option value="p06" {% if task.input.pathogen == "p06" %}selected {% endif %}>Candida tropicalis</option>
+                                    <option value="p07" {% if task.input.pathogen == "p07" %}selected {% endif %}>Citrobacter diversus</option>
+                                    <option value="p08" {% if task.input.pathogen == "p08" %}selected {% endif %}>Citrobacter freundii</option>
+                                    <option value="p09" {% if task.input.pathogen == "p09" %}selected {% endif %}>Citrobacter koseri</option>
+                                    <option value="p10" {% if task.input.pathogen == "p10" %}selected {% endif %}>Clostridium difficile</option>
+                                    <option value="p11" {% if task.input.pathogen == "p11" %}selected {% endif %}>Enterobacter aerogenes</option>
+                                    <option value="p12" {% if task.input.pathogen == "p12" %}selected {% endif %}>Enterobacter cloacae</option>
+                                    <option value="p13" {% if task.input.pathogen == "p13" %}selected {% endif %}>Enterococcus faecalis</option>
+                                    <option value="p14" {% if task.input.pathogen == "p14" %}selected {% endif %}>Enterococcus faecium</option>
+                                    <option value="p15" {% if task.input.pathogen == "p15" %}selected {% endif %}>Escherichia coli</option>
+                                    <option value="p16" {% if task.input.pathogen == "p16" %}selected {% endif %}>Haemophilus influenzae</option>
+                                    <option value="p17" {% if task.input.pathogen == "p17" %}selected {% endif %}>Klebsiella oxytoca</option>
+                                    <option value="p18" {% if task.input.pathogen == "p18" %}selected {% endif %}>Klebsiella pneumoniae</option>
+                                    <option value="p19" {% if task.input.pathogen == "p19" %}selected {% endif %}>Moraxella catarrhalis</option>
+                                    <option value="p20" {% if task.input.pathogen == "p20" %}selected {% endif %}>Morganella morganii</option>
+                                    <option value="p21" {% if task.input.pathogen == "p21" %}selected {% endif %}>Proteaus mirabilis</option>
+                                    <option value="p22" {% if task.input.pathogen == "p22" %}selected {% endif %}>Pseudomonas aeruginosa</option>
+                                    <option value="p23" {% if task.input.pathogen == "p23" %}selected {% endif %}>Serratia marcescens</option>
+                                    <option value="p24" {% if task.input.pathogen == "p24" %}selected {% endif %}>Staphylococcus aureus (MSSA, MRSA)</option>
+                                    <option value="p25" {% if task.input.pathogen == "p25" %}selected {% endif %}>Staphylococcus auricularis</option>
+                                    <option value="p26" {% if task.input.pathogen == "p26" %}selected {% endif %}>Staphylococcus capitis ssp. capitis</option>
+                                    <option value="p27" {% if task.input.pathogen == "p27" %}selected {% endif %}>Staphylococcus capitis ssp. unspecified</option>
+                                    <option value="p28" {% if task.input.pathogen == "p28" %}selected {% endif %}>Staphylococcus coagulase negative</option>
+                                    <option value="p29" {% if task.input.pathogen == "p29" %}selected {% endif %}>Staphylococcus cohnii</option>
+                                    <option value="p30" {% if task.input.pathogen == "p30" %}selected {% endif %}>Staphylococcus epidermidis</option>
+                                    <option value="p31" {% if task.input.pathogen == "p31" %}selected {% endif %}>Staphylococcus gallinarum</option>
+                                    <option value="p32" {% if task.input.pathogen == "p32" %}selected {% endif %}>Staphylococcus haemolyticus</option>
+                                    <option value="p33" {% if task.input.pathogen == "p33" %}selected {% endif %}>Staphylococcus hominis</option>
+                                    <option value="p34" {% if task.input.pathogen == "p34" %}selected {% endif %}>Staphylococcus lentus</option>
+                                    <option value="p35" {% if task.input.pathogen == "p35" %}selected {% endif %}>Staphylococcus lugdenensis</option>
+                                    <option value="p36" {% if task.input.pathogen == "p36" %}selected {% endif %}>Staphylococcus saccharolyticus</option>
+                                    <option value="p37" {% if task.input.pathogen == "p37" %}selected {% endif %}>Staphylococcus saprophyticus</option>
+                                    <option value="p38" {% if task.input.pathogen == "p38" %}selected {% endif %}>Staphylococcus schleiferi</option>
+                                    <option value="p39" {% if task.input.pathogen == "p39" %}selected {% endif %}>Staphylococcus sciuri</option>
+                                    <option value="p40" {% if task.input.pathogen == "p40" %}selected {% endif %}>Staphylococcus simulans</option>
+                                    <option value="p41" {% if task.input.pathogen == "p41" %}selected {% endif %}>Staphylococcus warneri</option>
+                                    <option value="p42" {% if task.input.pathogen == "p42" %}selected {% endif %}>Staphylococcus xylosus</option>
+                                    <option value="p43" {% if task.input.pathogen == "p43" %}selected {% endif %}>Stenotrophomonas maltophilia</option>
+                                    <option value="p44" {% if task.input.pathogen == "p44" %}selected {% endif %}>Streptococcus group A (Streptococcus pyogenes)</option>
+                                    <option value="p45" {% if task.input.pathogen == "p45" %}selected {% endif %}>Streptococcus group B (Streptococcus agalactiae)</option>
+                                    <option value="p46" {% if task.input.pathogen == "p46" %}selected {% endif %}>Streptococcus group D (Sterptococcus bovis)</option>
+                                    <option value="p47" {% if task.input.pathogen == "p47" %}selected {% endif %}>Streptococcus pneumoniae (pneumococcus)</option>
+                                    <option value="p49" {% if task.input.pathogen == "p48" %}selected {% endif %}>Strepotcuccus viridans (includes angiosus, bovis, mitis, mutans, salivarius)</option>
+                                    <option value="p48" {% if task.input.pathogen == "p49" %}selected {% endif %}>Torulopsis glabrata (Candida glabrata)</option>
+                                    <option value="p50" {% if task.input.pathogen == "p50" %}selected {% endif %}>Other pathogen</option>
+                                </select>
+
+                                <div class="infection p50" {% if task.input.pathogen != "p50" %} style="display:none" {% endif %}>
+                                    <br>
+                                    <label for="other_pathogen">Please specify:</label>
+                                    <textarea class="md-textarea form-control" id="other_pathogen" name="other_pathogen" rows="1">{% if task.input.other_pathogen %}{{ task.input.other_pathogen }}{% endif %}</textarea>
+                                </div>
+
+
+                                <br>
+
+                                <div class="form-check-inline infection bj p00 p11 p12 p13 p14 p15 p16 p17 p18 p21 p22 p23 p24 p25 p26 p27 p28 p29 p30 p31 p32 p33 p34 p35 p36 p37 p38 p39 p40 p41 p42 p44 p45 p46 p49" style="display:none">
+                                    <label class="form-check-inline-label infection-label">
+                                        <input type="checkbox" class="form-check-inline-input" value="" name="BJ">BJ
+                                        <span class="infection-checkmark"></span>
+                                    </label>
+                                </div>
+                                <div class="form-check-inline infection cvs p03 p04 p05 p06 p07 p08 p09 p11 p12 p13 p14 p15 p17 p18 p21 p22 p23 p24 p25 p26 p27 p28 p29 p30 p31 p32 p33 p34 p35 p36 p37 p38 p39 p40 p41 p42 p43 p45 p46 p47 p48 p49" style="display:none">
+                                    <label class="form-check-inline-label infection-label">
+                                        <input type="checkbox" class="form-check-inline-input" value="" name="CVS">CVS
+                                        <span class="infection-checkmark"></span>
+                                    </label>
+                                </div>
+                                <div class="form-check-inline infection cns p00 p03 p04 p05 p06 p07 p08 p09 p11 p12 p13 p14 p15 p16 p17 p18 p19 p21 p22 p23 p24 p25 p26 p27 p28 p29 p30 p31 p32 p33 p34 p35 p36 p37 p38 p39 p40 p41 p42 p45 p46 p47 p48 p49" style="display:none">
+                                    <label class="form-check-inline-label infection-label">
+                                        <input type="checkbox" class="form-check-inline-input" value="" name="CNS">CNS
+                                        <span class="infection-checkmark"></span>
+                                    </label>
+                                </div>
+                                <div class="form-check-inline infection eent p03 p04 p05 p06 p16 p19 p22 p24 p44 p47 p48 p49" style="display:none">
+                                    <label class="form-check-inline-label infection-label">
+                                        <input type="checkbox" class="form-check-inline-input" value="" name="EENT">EENT
+                                        <span class="infection-checkmark"></span>
+                                    </label>
+                                </div>
+                                <div class="form-check-inline infection gi p00 p01 p03 p04 p05 p06 p07 p08 p09 p10 p11 p12 p13 p14 p15 p17 p18 p20 p21 p22 p23 p24 p46 p48" style="display:none">
+                                    <label class="form-check-inline-label infection-label">
+                                        <input type="checkbox" class="form-check-inline-input" value="" name="GI">GI
+                                        <span class="infection-checkmark"></span>
+                                    </label>
+                                </div>
+                                <div class="form-check-inline infection lri p00 p02 p08 p09 p16 p17 p18 p19 p20 p21 p22 p23 p24 p43 p44 p47" style="display:none">
+                                    <label class="form-check-inline-label infection-label">
+                                        <input type="checkbox" class="form-check-inline-input" value="" name="LRI">LRI
+                                        <span class="infection-checkmark"></span>
+                                    </label>
+                                </div>
+                                <div class="form-check-inline infection pneu1 p00 p02 p08 p09 p16 p17 p18 p19 p21 p22 p23 p24 p43 p44 p47" style="display:none">
+                                    <label class="form-check-inline-label infection-label">
+                                        <input type="checkbox" class="form-check-inline-input" value="" name="PNEU1">PNEU1
+                                        <span class="infection-checkmark"></span>
+                                    </label>
+                                </div>
+                                <div class="form-check-inline infection pneu2 p00 p02 p08 p09 p16 p17 p18 p19 p21 p22 p23 p24 p43 p44 p47" style="display:none">
+                                    <label class="form-check-inline-label infection-label">
+                                        <input type="checkbox" class="form-check-inline-input" value="" name="PNEU2">PNEU2
+                                        <span class="infection-checkmark"></span>
+                                    </label>
+                                </div>
+                                <div class="form-check-inline infection pneu3 p00 p02 p03 p04 p05 p06 p08 p09 p11 p12 p15 p16 p17 p18 p19 p21 p22 p23 p24 p43 p44 p47 p48" style="display:none">
+                                    <label class="form-check-inline-label infection-label">
+                                        <input type="checkbox" class="form-check-inline-input" value="" name="PNEU3">PNEU3
+                                        <span class="infection-checkmark"></span>
+                                    </label>
+                                </div>
+                                <div class="form-check-inline infection repr p03 p04 p05 p06 p07 p08 p09 p11 p12 p15 p21 p23 p24 p45 p48" style="display:none">
+                                    <label class="form-check-inline-label infection-label">
+                                        <input type="checkbox" class="form-check-inline-input" value="" name="REPR">REPR
+                                        <span class="infection-checkmark"></span>
+                                    </label>
+                                </div>
+                                <div class="form-check-inline infection ssi p00 p01 p07 p08 p09 p11 p12 p13 p14 p15 p17 p18 p20 p21 p22 p23 p24 p25 p26 p27 p28 p29 p30 p31 p32 p33 p34 p35 p36 p37 p38 p39 p40 p41 p42 p43 p44 p45" style="display:none">
+                                    <label class="form-check-inline-label infection-label">
+                                        <input type="checkbox" class="form-check-inline-input" value="" name="SSI">SSI
+                                        <span class="infection-checkmark"></span>
+                                    </label>
+                                </div>
+                                <div class="form-check-inline infection sst p07 p08 p09 p11 p12 p13 p14 p15 p16 p20 p21 p22 p23 p24 p25 p26 p27 p28 p29 p30 p31 p32 p33 p34 p35 p36 p37 p38 p39 p40 p41 p42 p43 p44 p45 p46 p47" style="display:none">
+                                    <label class="form-check-inline-label infection-label">
+                                        <input type="checkbox" class="form-check-inline-input" value="" name="SST">SST
+                                        <span class="infection-checkmark"></span>
+                                    </label>
+                                </div>
+                                <div class="form-check-inline infection uti p00 p03 p04 p05 p06 p07 p08 p09 p11 p12 p13 p14 p15 p17 p18 p20 p21 p22 p23 p24 p37 p43 p45 p46 p48" style="display:none">
+                                    <label class="form-check-inline-label infection-label">
+                                        <input type="checkbox" class="form-check-inline-input" value="" name="UTI">UTI
+                                        <span class="infection-checkmark"></span>
+                                    </label>
+                                </div>
+
+                                <br>
+                                <label for="comment_on_pathogen">Comment on the pathogen</label>
+                                <textarea class="md-textarea form-control" id="comment_on_pathogen" name="comment_on_pathogen" rows="3">{% if task.input.comment_on_pathogen %}{{ task.input.comment_on_pathogen }}{% endif %}</textarea>
+
+                            </div>
+
+                            <h3 class="card-header text-center font-weight-bold text-uppercase py-4">Decision</h3>
+                            <div class="card-body">
+
+                                <label class="container">Case - include patient in the report
+                                    <input type="radio" name="decision" id="case" value="case" {% if task.input.decision == "case" %}checked="checked"{% endif %}>
+                                    <span class="checkmark"></span>
+                                </label>
+
+
+                                <div class="form-group" id="pathogens">
+
+                                    <div>
+                                        <label class="form-check-inline-label check-label" for="BSI_type">Primary bloodstream infection type:</label>
+                                        <div class="row">
+                                            <div class="col">
+                                                <label class="container">LCBI 1
+                                                    {% if task.input.BSI_type == "LCBI1" %}
+                                                        <input type="checkbox" class="form-check-inline-input" name="BSI_type" value="LCBI 1" id="LCBI 1" onclick="lcbi(1);" checked="checked">
+                                                    {% else %}
+                                                        <input type="checkbox" class="form-check-inline-input" name="BSI_type" value="LCBI 1" id="LCBI 1" onclick="lcbi(1);">
+                                                    {% endif %}
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <div class="pad-left">
+                                                    <label class="form-check-inline-label infection-label">
+                                                        {% if task.input.BSI_subtype == "MBI LCBI 1" %}
+                                                            <input type="checkbox" class="form-check-inline-input mbi" value="MBI-LCBI 1" name="MBI_LCBI_1" id="MBI-LCBI 1" checked="checked">MBI-LCBI 1
+                                                        {% else %}
+                                                            <input type="checkbox" class="form-check-inline-input mbi" value="MBI-LCBI 1" name="MBI_LCBI_1" id="MBI-LCBI 1">MBI-LCBI 1
+                                                        {% endif %}
+                                                        <span class="infection-checkmark"></span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <label class="container">LCBI 2
+                                                    {% if task.input.BSI_type == "LCBI2" %}
+                                                        <input type="checkbox" class="form-check-inline-input" name="BSI_type" value="LCBI 2" id="LCBI 2" onclick="lcbi(2);" checked="checked">
+                                                    {% else %}
+                                                        <input type="checkbox" class="form-check-inline-input" name="BSI_type" value="LCBI 2" id="LCBI 2" onclick="lcbi(2);">
+                                                    {% endif %}
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <div class="pad-left">
+                                                    <label class="form-check-inline-label infection-label">
+                                                        {% if task.input.BSI_subtype == "MBI LCBI 2" %}
+                                                            <input type="checkbox" class="form-check-inline-input mbi" value="MBI-LCBI 2" name="MBI_LCBI_2" id="MBI-LCBI 2" checked="checked">MBI-LCBI 2
+                                                        {% else %}
+                                                            <input type="checkbox" class="form-check-inline-input mbi" value="MBI-LCBI 2" name="MBI_LCBI_2" id="MBI-LCBI 2">MBI-LCBI 2
+                                                        {% endif %}
+                                                        <span class="infection-checkmark"></span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <label class="container">LCBI 3
+                                                    {% if task.input.BSI_type == "LCBI3" %}
+                                                        <input type="checkbox" class="form-check-inline-input" name="BSI_type" value="LCBI 3" id="LCBI 3" onclick="lcbi(3);" checked="checked">
+                                                    {% else %}
+                                                        <input type="checkbox" class="form-check-inline-input" name="BSI_type" value="LCBI 3" id="LCBI 3" onclick="lcbi(3);">
+                                                    {% endif %}
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <div class="pad-left">
+                                                    <label class="form-check-inline-label infection-label">
+                                                        {% if task.input.BSI_subtype == "MBI LCBI 3" %}
+                                                            <input type="checkbox" class="form-check-inline-input mbi" value="MBI-LCBI 3" name="MBI_LCBI_3" id="MBI-LCBI 3" checked="checked">MBI-LCBI 3
+                                                        {% else %}
+                                                            <input type="checkbox" class="form-check-inline-input mbi" value="MBI-LCBI 3" name="MBI_LCBI_3" id="MBI-LCBI 3">MBI-LCBI 3
+                                                        {% endif %}
+                                                        <span class="infection-checkmark"></span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <label class="container">No case - exclude patient from the report
+                                    <input type="radio" name="decision" id="nocase" value="nocase" {% if task.input.decision == "nocase" %}checked="checked"{% endif %}>
+                                    <span class="checkmark"></span>
+                                </label>
+                                <div class="form-group" id="nocasecategory">
+                                    <div class="row">
+                                        <div class="pullin">
+                                            <label for="commonnocasereason">Common no case reasons:</label>
+
+                                            <label class="container">Present on hospital admission (POA)
+                                                <input type="radio" name="commonnocasereason" id="POA" value="POA" {% if task.input.commonnocasereason  == "POA" %}checked="checked"{% endif%}>
+                                                <span class="checkmark"></span>
+                                            </label>
+                                            <label class="container">14-day Repeat Infection Timeframe (RIT)
+                                                <input type="radio" name="commonnocasereason" id="RIT" value="RIT" {% if task.input.commonnocasereason  == "RIT" %}checked="checked"{% endif%}>
+                                                <span class="checkmark"></span>
+                                            </label>
+                                            <label class="container">Common excluded pathogen
+                                                <input type="radio" name="commonnocasereason" id="Common excluded pathogen" value="Common excluded pathogen" {% if task.input.commonnocasereason  == "Common excluded pathogen" %}checked="checked"{% endif%}>
+                                                <span class="checkmark"></span>
+                                            </label>
+                                            <label class="container">Alternate source/diagnosis
+                                                <input type="radio" name="commonnocasereason" id="Alternate source/diagnosis" value="Alternate source/diagnosis" {% if task.input.commonnocasereason  == "Alternate source/diagnosis" %}checked="checked"{% endif%}>
+                                                <span class="checkmark"></span>
+                                                <textarea class="md-textarea form-control" id="alternate_diagnosis" name="alternate_diagnosis" rows="1">{% if task.input.alternate_diagnosis %}{{ task.input.alternate_diagnosis }}{% endif %}</textarea>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <label class="container">Require further review - revisit patient later
+                                    <input type="radio" name="decision" id="notsure" value="notsure" {% if task.input.decision == "notsure" %}checked="checked"{% endif %} required>
+                                    <span class="checkmark"></span>
+                                </label>
+
+                                <div class="form-group">
+                                    <label for="comment">Comments from previous reviews</label>
+                                    <textarea readonly class="md-textarea form-control" id="comment" name="comment" rows="5">{% if task.input.comment %}{{ task.input.comment }}{% endif %}</textarea>
+
+                                    <label for="new_comment">Reason for decision</label>
+                                    <textarea required class="md-textarea form-control" id="new_comment" name="new_comment" rows="5"></textarea>
+                                </div>
+
+                                <div>
+                                    <div class="row">
+                                        <div class="col">
+                                            <label for="send_to_physician">Send notification to:</label>
+                                            <select class="form-control" name="send_to_physician" id="send_to_physician" size=6>
+                                                <option value="Dr. Victor Leung">Dr. Victor Leung</option>
+                                                <option value="Dr. Christopher Lowe">Dr. Christopher Lowe</option>
+                                                <option value="Dr. Thomas Kind">Thomas Kind</option>
+                                                <option value="Dr. Sherly Boddu">Sherly Boddu</option>
+                                                <option value="Dr. Steven Chan">Steven Chan</option>
+                                                <option value="Do not send notification" selected>Do not send notification</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card col-sm-6">
+                        <div class="card">
+                            <h3 class="card-header text-center font-weight-bold text-uppercase py-4 iwp">Infection Window Period</h3>
+
+                            <!-- Show IWP images -->
+                            <div class="card-body">
+
+                                {% for iwp in task.input.iwp_plots %}
+                                    <div>
+                                        <div id={{ iwp[0] }} class="iwp-plots">
+                                            <img class="img-fluid" src={{ iwp[1] | grant_read_access }} alt="Infection Window Period">
+                                        </div>
+                                    </div>
+                                {% endfor %}
+
+                                <div class="comment_on_iwp">
+                                    <label for="comment_on_iwp">Comment on the Infection Window Period</label>
+                                    <textarea class="md-textarea form-control" id="comment_on_iwp" name="IWP_comment" rows="5">{% if task.input.IWP_comment %}{{ task.input.IWP_comment }}{% endif %}</textarea>
+                                </div>
+                            </div>
+                            <!-- Show IWP images end -->
+
+                        </div>
+
+                        <h3 class="card-header text-center font-weight-bold text-uppercase py-4">NHSN protocol</h3>
+                        <iframe id="clabsi-manual" sandbox="allow-same-origin allow-forms allow-popups allow-scripts allow-top-navigation allow-pointer-lock"  frameBorder="0"  width="100%" height="1000px" src="https://drive.google.com/viewerng/viewer?embedded=true&url=https://www.cdc.gov/nhsn/pdfs/pscmanual/4psc_clabscurrent.pdf" type="application/pdf"></iframe>
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</crowd-form>
+
+
+<script>
+const $tableID = $('#table');
+const $BTN = $('#export-btn');
+const $EXPORT = $('#export');
+
+const newTr = `
+<tr class="hide">
+  <td class="pt-3-half" contenteditable="true">Example</td>
+  <td class="pt-3-half" contenteditable="true">Example</td>
+  <td class="pt-3-half" contenteditable="true">Example</td>
+  <td class="pt-3-half" contenteditable="true">Example</td>
+  <td class="pt-3-half" contenteditable="true">Example</td>
+  <td class="pt-3-half">
+    <span class="table-up"><a href="#!" class="indigo-text"><i class="fas fa-long-arrow-alt-up" aria-hidden="true"></i></a></span>
+    <span class="table-down"><a href="#!" class="indigo-text"><i class="fas fa-long-arrow-alt-down" aria-hidden="true"></i></a></span>
+  </td>
+  <td>
+    <span class="table-remove"><button type="button" class="btn btn-danger btn-rounded btn-sm my-0 waves-effect waves-light">Remove</button></span>
+  </td>
+</tr>`;
+
+$(document).ready(function () {
+
+    $(".encounter-table").hide();
+    $(".iwp-plots").hide();
+
+    $("#pathogens").hide();
+    $("#nocasecategory").hide();
+
+    $("#case").click(function () {
+        $("#pathogens").show();
+        $("#nocasecategory").hide();
+    });
+    $("#nocase").click(function () {
+        $("#pathogens").hide();
+        $("#nocasecategory").show();
+    });
+    $("#notsure").click(function () {
+        $("#pathogens").hide();
+        $("#nocasecategory").hide();
+    });
+
+});
+
+$(function() {
+
+    $("#encounter-select").change(function(){
+        $(".encounter-table").hide();
+        $("." + $(this).val()).show();
+
+        $(".iwp-plots").hide();
+        $("#" + $(this).val()).show();
+    });
+
+});
+
+$(function() {
+
+    $('#pathogen').change(function(){
+        $(".check-label-div").show();
+        $(".form-check-inline-input").prop("checked", false);
+        $(".infection-type-radio").prop("checked", false);
+        $(".infection").hide();
+        $("." + $(this).val()).show();
+    });
+
+});
+
+function lcbi(parameter) {
+    $(".mbi").prop("checked", false);
+
+    document.getElementById("MBI-LCBI 1").disabled = true;
+    document.getElementById("MBI-LCBI 2").disabled = true;
+    document.getElementById("MBI-LCBI 3").disabled = true;
+
+    if (parameter == 1) {
+        document.getElementById("MBI-LCBI 1").disabled = false;
+        document.getElementById("LCBI 2").checked = false;
+        document.getElementById("LCBI 3").checked = false;
+    };
+    if (parameter == 2) {
+        document.getElementById("MBI-LCBI 2").disabled = false;
+        document.getElementById("LCBI 1").checked = false;
+        document.getElementById("LCBI 3").checked = false;
+    };
+    if (parameter == 3) {
+        document.getElementById("MBI-LCBI 3").disabled = false;
+        document.getElementById("LCBI 1").checked = false;
+        document.getElementById("LCBI 2").checked = false;
+    };
+};
+
+$('.table-add').on('click', 'i', () => {
+
+  const $clone = $tableID.find('tbody tr').last().clone(true).removeClass('hide table-line');
+
+  if ($tableID.find('tbody tr').length === 0) {
+
+    $('tbody').append(newTr);
+  }
+
+  $tableID.find('table').append($clone);
+});
+
+$tableID.on('click', '.table-remove', function () {
+
+  $(this).parents('tr').detach();
+});
+
+$tableID.on('click', '.table-up', function () {
+
+  const $row = $(this).parents('tr');
+
+  if ($row.index() === 0) {
+    return;
+  }
+
+  $row.prev().before($row.get(0));
+});
+
+$tableID.on('click', '.table-down', function () {
+
+  const $row = $(this).parents('tr');
+  $row.next().after($row.get(0));
+});
+
+// A few jQuery helpers for exporting only
+jQuery.fn.pop = [].pop;
+jQuery.fn.shift = [].shift;
+
+$BTN.on('click', () => {
+
+  const $rows = $tableID.find('tr:not(:hidden)');
+  const headers = [];
+  const data = [];
+
+  // Get the headers (add special header logic here)
+  $($rows.shift()).find('th:not(:empty)').each(function () {
+
+    headers.push($(this).text().toLowerCase());
+  });
+
+  // Turn all existing rows into a loopable array
+  $rows.each(function () {
+    const $td = $(this).find('td');
+    const h = {};
+
+    // Use the headers from earlier to name our hash keys
+    headers.forEach((header, i) => {
+
+      h[header] = $td.eq(i).text();
+    });
+
+    data.push(h);
+  });
+
+  // Output the result
+  $EXPORT.text(JSON.stringify(data));
+});
+
+</script>

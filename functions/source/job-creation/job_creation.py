@@ -29,7 +29,7 @@ def send_email_notification(email, name):
     # sender = "Digitalproducts@providencehealth.bc.ca"
 
     link = 'https://mnk0cdarat.labeling.ca-central-1.sagemaker.aws'
-    sender = 'zbozoky@providencehealth.bc.ca'
+    sender = os.environ['sender_email']
     recipient = email
     # CONFIGURATION_SET = "ConfigSet"
     aws_region = "ca-central-1"
@@ -107,9 +107,7 @@ def get_table_fields():
         ('bc_phn', 'PHN'),
         ('mrn', 'MRN'),
         ('encntr_num', 'Encounter #'),
-        ('organism_1_desc_src', 'Organism_1'),
-        ('organism_2_desc_src', 'Organism_2'),
-        ('organism_3_desc_src', 'Organism_3'),
+        ('organism', 'Organism'),
         ('nursing_unit_short_desc', 'Nursing unit'),
         ('beg_effective_dt_tm',
             'Icu admission dt-tm (at collection or before)'),
@@ -315,8 +313,9 @@ def get_table(dataframe):
         table[collection_date] = []
         for fieldname, humanname in get_table_fields():
             try:
-                table[collection_date].append([humanname, table_dict[
-                    collection_date][fieldname]])
+                table[collection_date].append(
+                    [humanname, table_dict[collection_date][fieldname]]
+                    )
             except KeyError:
                 pass
     return table
@@ -509,7 +508,7 @@ def lambda_handler(event, context):
         #     worker_id = 'Ready-for-ICP-review'
 
         # Job name is the name in the Ground Truth queue, it has to be unique
-        job_name = 'MRN-{mrn_id}-reviewed-{review_number}-times-{creation_time}'.\
+        job_name = 'MRN-{mrn_id}-reviewed-{review_number}-times-{creation_time}'. \
             format(**{
                     'mrn_id': mrn_id,
                     'review_number': dataframe["PR"][0],

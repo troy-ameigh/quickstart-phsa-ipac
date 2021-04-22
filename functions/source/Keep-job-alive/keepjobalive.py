@@ -141,10 +141,10 @@ def lambda_handler(event, context):
         body = csv_obj['Body']
         csv_string = body.read().decode('utf-8')
         dataframe = pd.read_csv(StringIO(csv_string))
-        # writing the file back to s3 , inorder to trigger job creation lambda
-        write_dataframe_to_csv_on_s3(dataframe, key, bucket)
         # removing that MRN and PR from timeline.csv file
         removerow_creationtime(mrn, previously_reviewed)
+        # writing the file back to s3 , inorder to trigger job creation lambda
+        write_dataframe_to_csv_on_s3(dataframe, key, bucket)
         print('rewrote to csv')
 
     return {
