@@ -352,16 +352,26 @@ Resources:
       Timeout: 900
 
 Outputs:
-  PreProcessLambdaExecutionRole:
+  PreProcessLambdaExecutionRoleARN:
     Value: !GetAtt PreProcessLambdaExecutionRole.Arn
-  JobCreationLambdaExecutionRole:
+  JobCreationLambdaExecutionRoleARN:
     Value: !GetAtt PreProcessLambdaExecutionRole.Arn
-  FeedbackLoopLambdaExecutionRole:
+  FeedbackLoopLambdaExecutionRoleARN:
     Value: !GetAtt PreProcessLambdaExecutionRole.Arn
-  SageMakerPreprocessLambdaExecutionRole:
+  SageMakerPreprocessLambdaExecutionRoleARN:
     Value: !GetAtt PreProcessLambdaExecutionRole.Arn
-  SageMakerPostprocessLambdaExecutionRole:
+  SageMakerPostprocessLambdaExecutionRoleARN:
     Value: !GetAtt SageMakerPostprocessLambdaExecutionRole.Arn
+  PreProcessLambdaExecutionRole:
+    Value: !Ref PreProcessLambdaExecutionRole
+  JobCreationLambdaExecutionRole:
+    Value: !Ref PreProcessLambdaExecutionRole
+  FeedbackLoopLambdaExecutionRole:
+    Value: !Ref PreProcessLambdaExecutionRole
+  SageMakerPreprocessLambdaExecutionRole:
+    Value: !Ref PreProcessLambdaExecutionRole
+  SageMakerPostprocessLambdaExecutionRole:
+    Value: !Ref SageMakerPostprocessLambdaExecutionRole
   LambdaZipsBucket:
     Value: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
   MatplotlibLayerName:

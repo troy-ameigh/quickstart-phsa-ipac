@@ -185,30 +185,8 @@ Resources:
         - Sid: Allow IAM User permissions to manage the key
           Effect: Allow
           Principal:
-            AWS:
-              Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:iam::', Ref: 'AWS::AccountId', ':root' ] ]
+            AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
           Action: kms:*
-          Resource: '*'
-        - Sid: Allow Cloud Admins to manage the key
-          Effect: Allow
-          Principal:
-            AWS:
-              Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:iam::', Ref: 'AWS::AccountId', ':role/phsa-sso-admin' ] ]
-          Action:
-            - kms:Create*
-            - kms:Describe*
-            - kms:Enable*
-            - kms:List*
-            - kms:Put*
-            - kms:Update*
-            - kms:Revoke*
-            - kms:Disable*
-            - kms:Get*
-            - kms:Delete*
-            - kms:TagResource
-            - kms:UntagResource
-            - kms:ScheduleKeyDeletion
-            - kms:CancelKeyDeletion
           Resource: '*'
         - Sid: Allow use of the key
           Effect: Allow
@@ -234,38 +212,16 @@ Resources:
         - Sid: Allow IAM User permissions to manage the key
           Effect: Allow
           Principal:
-            AWS:
-              Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:iam::', Ref: 'AWS::AccountId', ':root' ] ]
+            AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
           Action: kms:*
-          Resource: '*'
-        - Sid: Allow Cloud Admins to manage the key
-          Effect: Allow
-          Principal:
-            AWS:
-              Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:iam::', Ref: 'AWS::AccountId', ':role/phsa-sso-admin' ] ]
-          Action:
-            - kms:Create*
-            - kms:Describe*
-            - kms:Enable*
-            - kms:List*
-            - kms:Put*
-            - kms:Update*
-            - kms:Revoke*
-            - kms:Disable*
-            - kms:Get*
-            - kms:Delete*
-            - kms:TagResource
-            - kms:UntagResource
-            - kms:ScheduleKeyDeletion
-            - kms:CancelKeyDeletion
           Resource: '*'
         - Sid: Allow use of the key
           Effect: Allow
           Principal:
             AWS:
-              - !GetAtt FunctionsStack.Outputs.PreProcessLambdaExecutionRole
-              - !GetAtt FunctionsStack.Outputs.JobCreationLambdaExecutionRole
-              - !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaExecutionRole
+              - !GetAtt FunctionsStack.Outputs.PreProcessLambdaExecutionRoleARN
+              - !GetAtt FunctionsStack.Outputs.JobCreationLambdaExecutionRoleARN
+              - !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaExecutionRoleARN
           Action:
           - kms:Decrypt
           Resource: '*'
@@ -551,11 +507,11 @@ Resources:
                 Action:
                   - 'iam:PassRole'
                 Resource:
-                  - !GetAtt FunctionsStack.Outputs.JobCreationLambdaExecutionRole
-                  - !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaExecutionRole
-                  - !GetAtt FunctionsStack.Outputs.PreProcessLambdaExecutionRole
-                  - !GetAtt FunctionsStack.Outputs.SageMakerPreprocessLambdaExecutionRole
-                  - !GetAtt FunctionsStack.Outputs.SageMakerPostprocessLambdaExecutionRole
+                  - !GetAtt FunctionsStack.Outputs.JobCreationLambdaExecutionRoleARN
+                  - !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaExecutionRoleARN
+                  - !GetAtt FunctionsStack.Outputs.PreProcessLambdaExecutionRoleARN
+                  - !GetAtt FunctionsStack.Outputs.SageMakerPreprocessLambdaExecutionRoleARN
+                  - !GetAtt FunctionsStack.Outputs.SageMakerPostprocessLambdaExecutionRoleARN
   CodeDeployServiceRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -622,8 +578,7 @@ Resources:
             CognitoClientId: !Ref UserPoolTokenClient
             CognitoUserGroup: !Ref UserPoolGroup
             CognitoUserPool: !Ref IPACUserPool
-      WorkteamName: 'test'
-      #WorkteamName: !Join [ '', [ !Sub 'IPAC-Workteam', '-', !Select [ 2, !Split [ /, !Ref AWS::StackId ] ], '-', Ref: 'AWS::Region' ] ]
+      WorkteamName: !Join [ '', [ 'IPAC-Workteam', '-', !Select [ 2, !Split [ /, !Ref AWS::StackId ] ] ] ]
   SageMakerGroundTruthExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -708,15 +663,15 @@ Resources:
           # - Name: ArtifactsStoreBucketName
           #   Value: !Ref ArtifactsStoreBucket
           - Name: PREPROCESS_ROLE
-            Value: !GetAtt FunctionsStack.Outputs.PreProcessLambdaExecutionRole
+            Value: !GetAtt FunctionsStack.Outputs.PreProcessLambdaExecutionRoleARN
           - Name: JOB_CREATION_ROLE
-            Value: !GetAtt FunctionsStack.Outputs.JobCreationLambdaExecutionRole
+            Value: !GetAtt FunctionsStack.Outputs.JobCreationLambdaExecutionRoleARN
           - Name: FEEDBACK_LOOP_ROLE
-            Value: !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaExecutionRole
+            Value: !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaExecutionRoleARN
           - Name: SAGEMAKER_PREPROCESS_LOOP_ROLE
-            Value: !GetAtt FunctionsStack.Outputs.SageMakerPreprocessLambdaExecutionRole
+            Value: !GetAtt FunctionsStack.Outputs.SageMakerPreprocessLambdaExecutionRoleARN
           - Name: SAGEMAKER_POSTPROCESS_LOOP_ROLE
-            Value: !GetAtt FunctionsStack.Outputs.SageMakerPostprocessLambdaExecutionRole
+            Value: !GetAtt FunctionsStack.Outputs.SageMakerPostprocessLambdaExecutionRoleARN
           - Name: JOB_TASK_DESCRIPTION
             Value: Classify as cases, no case, or not sure
           - Name: MAX_CONCURRENT_TASK_COUNT
