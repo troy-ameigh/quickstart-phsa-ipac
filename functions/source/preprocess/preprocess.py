@@ -232,7 +232,7 @@ def plot_timeline(dataframe, patient):
                         markersize=14,
                         linestyle='',
                         color=plt.cm.tab10(unique_organisms.index(organism)),
-                        label=organism.replace(', ', "\n"),
+                        label=organism.replace(', ',"\n"),
                     )
                     plotted_organisms.append(organism)
                 else:
@@ -507,21 +507,27 @@ def generate_iwp_plot(dataframe, temperature, plot_index, patient):
 
     return True
 
+
 def preprocess(obj):
 
     '''
-    Recieves s3 object from boto3, converts to excell sheet,
+    Recieves s3 object from boto3, converts to excell sheet, 
     and then converts to 3 dataframes.
-    changes the dataframes column names to lower case,
+
+    changes the dataframes column names to lower case, 
     and joins organism dataframe with patient dataframe.
+
     ----------
     fieldname : obj
+
     fieldname: s3 object
+
+
     Returns
     -------
-    dataframe for patients, dataframe for temperature
+    dataframe for patients, dataframe for temperature    
     '''
-
+    
     data = obj['Body'].read()
     xls = pd.ExcelFile(data)
     dataframe_patients = pd.read_excel(xls, 'Sheet1')
@@ -530,21 +536,16 @@ def preprocess(obj):
     dataframe_patients.rename(str.lower, axis='columns',inplace=True)
     dataframe_temperature.rename(str.lower, axis='columns',inplace=True)
     dataframe_organism.rename(str.lower, axis='columns', inplace=True)
+    
+    dataframe_organism.set_index(['mrn','encntr_num'], inplace=True)
 
-    if 'Unnamed: 0' in dataframe_patients.columns:
-        dataframe_patients.drop(columns='Unnamed: 0', inplace=True)
-    if 'Unnamed: 0' in dataframe_temperature.columns:
-        dataframe_temperature.drop(columns='Unnamed: 0', inplace=True)
-    if 'Unnamed: 0' in dataframe_organism.columns:
-        dataframe_organism.drop(columns='Unnamed: 0', inplace=True)
-
-    dataframe_organism.set_index(['mrn', 'encntr_num'], inplace=True)
     for i in dataframe_patients.index:
         mrn = dataframe_patients.loc[i,'mrn']
         enct_num = dataframe_patients.loc[i, 'encntr_num']
-        dataframe_patients.loc[i, 'organism'] = " , ".join(dataframe_organism.loc[(mrn,enct_num),'organism_desc_src'].unique())
-
+        dataframe_patients.loc[i, 'organism'] = ",\n".join(dataframe_organism.loc[(mrn,enct_num),'organism_desc_src'].unique())
+        
     return dataframe_patients, dataframe_temperature
+    
 
 def lambda_handler(event, context):
     '''
@@ -579,7 +580,6 @@ def lambda_handler(event, context):
     key = event['Records'][0]['s3']['object']['key']
     obj = s3_client.get_object(Bucket=bucket, Key=key)
     dataframe_patients, dataframe_temperature = preprocess(obj)
-
     try:
         for patient in dataframe_patients['mrn'].unique():
 

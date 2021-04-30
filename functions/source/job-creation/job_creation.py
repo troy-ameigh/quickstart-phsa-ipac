@@ -22,70 +22,6 @@ import boto3
 print('Job creation lambda function')
 
 
-def send_email_notification(email, name):
-    """
-    Send an email notification to a physician, with the job name.
-    """
-    # sender = "Digitalproducts@providencehealth.bc.ca"
-
-    link = 'https://mnk0cdarat.labeling.ca-central-1.sagemaker.aws'
-    sender = os.environ['sender_email']
-    recipient = email
-    # CONFIGURATION_SET = "ConfigSet"
-    aws_region = "ca-central-1"
-    subject = "IPAC-CLABSI case requires your attention"
-    body_text = "IPAC-CLABSI case requires your attention - {}".format(
-        'https://mnk0cdarat.labeling.ca-central-1.sagemaker.aws'
-    )
-
-    body_html = """<html>
-    <head></head>
-    <body>
-      Dear {}, <br>
-      A new potential IPAC-CLABSI case requires your attention!
-      <a href={}>Start case review</a>
-    </body>
-    </html>""".format(name, link)
-    charset = "UTF-8"
-    client = boto3.client('ses', region_name=aws_region)
-    try:
-        # Provide the contents of the email.
-        response = client.send_email(
-            Destination={
-                'ToAddresses': [
-                    recipient,
-                ],
-            },
-            Message={
-                'Body': {
-                    'Html': {
-                        'charset': charset,
-                        'Data': body_html,
-                    },
-                    'Text': {
-                        'charset': charset,
-                        'Data': body_text,
-                    },
-                },
-                'Subject': {
-                    'charset': charset,
-                    'Data': subject,
-                },
-            },
-            Source=sender,
-            # If you are not using a configuration set, comment or delete the
-            # following line
-            # ConfigurationSetName=CONFIGURATION_SET,
-        )
-    # Display an error if something goes wrong.
-    except ClientError as error:
-        print(error.response['Error']['Message'])
-    else:
-        print("Email sent! Message ID:")
-        print(response['MessageId'])
-    return 'if you dont see Email sent!, then it didnt pass try!'
-
-
 def convert(value):
     '''
     convert np.int64 to int
@@ -141,6 +77,71 @@ def get_table_fields():
     ]
 
     return fields
+
+
+def map_pathogen_name_to_id(pathogen_name):
+    """
+    """
+    mapping = {
+        "Acinetobacter baumannii": "p00",
+        "Baceroides fragilis": "p01",
+        "Burkholderia cepacia": "p02",
+        "Candida albicans": "p03",
+        "Candida giabrata": "p04",
+        "Candida parapsilosis": "p05",
+        "Candida tropicalis": "p06",
+        "Citrobacter diversus": "p07",
+        "Citrobacter freundii": "p08",
+        "Citrobacter koseri": "p09",
+        "Clostridium difficile": "p10",
+        "Enterobacter aerogenes": "p11",
+        "Enterobacter cloacae": "p12",
+        "Enterococcus faecalis": "p13",
+        "Enterococcus faecium": "p14",
+        "Escherichia coli": "p15",
+        "Haemophilus influenzae": "p16",
+        "Klebsiella oxytoca": "p17",
+        "Klebsiella pneumoniae": "p18",
+        "Moraxella catarrhalis": "p19",
+        "Morganella morganii": "p20",
+        "Proteaus mirabilis": "p21",
+        "Pseudomonas aeruginosa": "p22",
+        "Serratia marcescens": "p23",
+        "Staphylococcus aureus (MSSA, MRSA)": "p24",
+        "Staphylococcus auricularis": "p25",
+        "Staphylococcus capitis ssp. capitis": "p26",
+        "Staphylococcus capitis ssp. unspecified": "p27",
+        "Staphylococcus coagulase negative": "p28",
+        "Staphylococcus cohnii": "p29",
+        "Staphylococcus epidermidis": "p30",
+        "Staphylococcus gallinarum": "p31",
+        "Staphylococcus haemolyticus": "p32",
+        "Staphylococcus hominis": "p33",
+        "Staphylococcus lentus": "p34",
+        "Staphylococcus lugdenensis": "p35",
+        "Staphylococcus saccharolyticus": "p36",
+        "Staphylococcus saprophyticus": "p37",
+        "Staphylococcus schleiferi": "p38",
+        "Staphylococcus sciuri": "p39",
+        "Staphylococcus simulans": "p40",
+        "Staphylococcus warneri": "p41",
+        "Staphylococcus xylosus": "p42",
+        "Stenotrophomonas maltophilia": "p43",
+        "Streptococcus group A (Streptococcus pyogenes)": "p44",
+        "Streptococcus group B (Streptococcus agalactiae)": "p45",
+        "Streptococcus group D (Sterptococcus bovis)": "p46",
+        "Streptococcus pneumoniae (pneumococcus)": "p47",
+        "Strepotcuccus viridans (includes angiosus, bovis, mitis, mutans, salivarius)": "p49",
+        "Torulopsis glabrata (Candida glabrata)": "p48",
+        "Other pathogen": "p50",
+        }
+
+    pathogen = pathogen_name
+    if pathogen_name in mapping:
+        pathogen = mapping[pathogen_name]
+
+    return pathogen
+
 
 
 def modify_template_content(template, tablekeys):
@@ -337,8 +338,35 @@ def gen_data_dict(dataframe, bucket):
 
     for column in extra_columns:
         if column in dataframe.columns:
-            data[column] = dataframe[column][0]
+            if column == 'pathogen':
+                data[column] = map_pathogen_name_to_id(dataframe[column][0])
+            else:
+                data[column] = dataframe[column][0]
 
+    if 'clabsi' in dataframe.columns:
+        data['collection_class'] = []
+        count = 0
+        collection_date = ''
+        for index in dataframe.index:
+
+            if collection_date == dataframe.loc[index, 'collection_dt_tm']:
+                count += 1
+            else:
+                count = 1
+            collection_date = dataframe.loc[index, 'collection_dt_tm']
+
+            collection_count = '{collection_date}_{number}'.format(
+                collection_date=pd.to_datetime(dataframe.loc[
+                    index, 'collection_dt_tm']).strftime('%Y-%m-%d'),
+                number=count,
+                )
+
+            if str(dataframe.loc[index, 'clabsi']).lower() =='true':
+                print('i passed true test!', dataframe.loc[index, 'clabsi'].astype(str))
+
+                data['collection_class'].append((collection_count))
+
+        print(data['collection_class'])
     if 'comment' in dataframe.columns:
         if str(dataframe['comment'][0]) not in [
                 'None', '(Null)', 'nan', 'Non']:
@@ -478,34 +506,9 @@ def lambda_handler(event, context):
             else:
                 worker_id = 'Ready_for_ICP_review'
 
-        # Send email notification to the physician
-        emails = {
-            "Dr. David Harris": "dharris@providencehealth.bc.ca",
-            "Dr. Thomas Kind": "TKind@providencehealth.bc.ca",
-            "Dr. Victor Leung": "VLeung@providencehealth.bc.ca",
-            "Dr. Sherly Boddu": "pboddu@providencehealth.bc.ca",
-            "Dr. Steven Chan": "schan1@providencehealth.bc.ca",
-            "Dr. Christopher Lowe": "CLowe@providencehealth.bc.ca",
-            "Zoltan": "zbozoky@providencehealth.bc.ca",
-            "Do not send notification": "none"}
 
         if dataframe['PR'][0] >= 1:
-
-            if dataframe['send_to_physician'][0] not in [
-                'nan', 'none', 'Na',
-                'NA', 'Do not send notification',
-                    ""]:
-
-                worker_id = dataframe['send_to_physician'][0]
-                email = emails[worker_id]
-                if email != "none":
-                    send_email_notification(email, worker_id)
-            else:
-
-                print('Ready-for-physician-review')
-                worker_id = 'Ready-for-physician-review'
-        # else:
-        #     worker_id = 'Ready-for-ICP-review'
+            worker_id = 'Ready-for-physician-review'
 
         # Job name is the name in the Ground Truth queue, it has to be unique
         job_name = 'MRN-{mrn_id}-reviewed-{review_number}-times-{creation_time}'. \

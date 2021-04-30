@@ -66,20 +66,21 @@ def check_creationtimefile():
     # getting the date from time stamp
     my_date = date.fromtimestamp(timestamp)
     for i in dataframe.index:
-
-        # getting the date from creation_time
-        creation_time = pd.Timestamp(
-            pd.to_datetime(dataframe.loc[
-                i, 'CreationTime'])).to_pydatetime().date()
-
-        # finding the number of days difference between
-        #  current time and creation time
-        time_diff = (my_date - creation_time).days
-        # if the time difference is larger than 10 days
-        if time_diff > 9:
-            mrns.append(dataframe.loc[i, 'MRN'])
-            prs.append(dataframe.loc[i, 'PR'])
-    return mrns, prs
+        
+        if dataframe.loc[i, 'status'] == 'incomplete':
+        
+            # getting the date from creation_time
+            creation_time = pd.Timestamp(pd.to_datetime(df.loc[i,
+            'CreationTime'])).to_pydatetime().date()
+            
+            # finding the number of days difference between
+            # current time and creation time
+            time_diff = (my_date - creation_time).days
+            # if the time difference is larger than 10 days
+            if time_diff > 9:
+                MRNS.append(dataframe.loc[i, 'MRN'])
+                PRS.append(dataframe.loc[i, 'PR'])
+    return MRNS, PRS
 
 
 def removerow_creationtime(mrn, previously_reviewed):
