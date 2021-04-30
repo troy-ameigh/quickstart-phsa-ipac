@@ -396,10 +396,10 @@ def write_csv_aggregate(bucket, dataframe, month, year, patient):
                 df_analytic.drop(columns  =c, inplace=True)
         
         write_dataframe_to_csv_on_s3(
-            df_aggregate_final, aggregate_filename, bucket)
+            df_analytic, aggregate_filename, bucket)
             
         write_dataframe_to_csv_on_s3(
-            df_analytic_final, analytic_filename, bucket)
+            df_analytic, analytic_filename, bucket)
             
         print('writing to aggregate finished')
     except Exception:
