@@ -687,7 +687,7 @@ Resources:
           - Name: TASK_TIME_LIMIT_IN_SECONDS
             Value: "3600"
           - Name: TEMPLATE_PATH
-            Value: !Sub "${ProcessingBucket}/ui-template/instructions_v19.template"
+            Value: !Sub "${ProcessingBucket}/ui-template/instructions_v21_QS.template"
           - Name: FEEDBACK_FOLDER
             Value: source-csv
           - Name: REPORTING_BUCKET

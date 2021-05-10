@@ -104,6 +104,8 @@ Resources:
         - functions/packages/numpylayer/lambda.zip
         - functions/packages/pandaslayer/lambda.zip
         - functions/packages/preprocesslayer/lambda.zip
+        - functions/packages/xlrd/lambda.zip
+
   CopyZipsFunction:
     Type: AWS::Lambda::Function
     Properties:
@@ -253,6 +255,13 @@ Resources:
       Content:
         S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/numpylayer/lambda.zip'
+  xlrdlayer:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      Content:
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/xlrd/lambda.zip'
   pandaslayer:
     DependsOn: CopyZips
     Type: AWS::Lambda::LayerVersion
@@ -322,7 +331,7 @@ Resources:
       MemorySize: 2048
       Runtime: python3.8
       Timeout: 900
-      Layers: [ !Ref preprocesslayer ]
+      Layers: [ !Ref preprocesslayer , !Ref xlrdlayer]
   SagemakerphcpostprocessLambda:
     DependsOn: CopyZips
     Type: AWS::Lambda::Function
