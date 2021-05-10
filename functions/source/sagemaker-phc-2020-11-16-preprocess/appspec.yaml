@@ -1,0 +1,9 @@
+version: 0.0
+Resources:
+  - feedback_loop:
+      type: "AWS::Lambda::Function"
+      properties:
+        name: sagemaker-phc-2020-11-16-preprocesslayer
+        alias: live
+        currentversion: 1
+        targetversion: 2
