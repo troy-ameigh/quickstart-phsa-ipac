@@ -14,6 +14,8 @@ Metadata:
         Parameters:
           - ApplicationName
           - Environment
+          - LandingBucketName
+          - ProcessingBucketName
       - Label:
           default: AWS Quick Start configuration
         Parameters:
@@ -40,6 +42,10 @@ Metadata:
         default: Quick Start S3 bucket Region
       LambdaZipsBucketName:
         default: Lambda zips bucket name
+      LandingBucketName:
+        default: Landingzone bucket name
+      ProcessingBucketName:
+        default: Processing bucket name
 Parameters:
   RepositoryName:
     Type: String
@@ -93,8 +99,18 @@ Parameters:
     Description: '[OPTIONAL] The name of the S3 bucket where the Lambda zip files should be placed. If you leave this parameter blank, an S3 bucket will be created.'
     Type: String
     Default: ''
+  LandingBucketName:
+    Type: String
+    Description: The name of the S3 bucket for the files landing zone. If you leave this parameter blank, an S3 bucket will be created.'
+    Default: ''
+  ProcessingBucketName:
+    Type: String
+    Description: Processing Bucket
+    Default: ''
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
+  LandingBucket: !Equals [!Ref LandingBucketName, ""]
+  ProcessingBucket: !Equals [!Ref ProcessingBucketName, ""]
 Rules:
   IPACQSRegions:
     Assertions:
@@ -132,6 +148,8 @@ Resources:
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
         QSS3BucketRegion: !Ref QSS3BucketRegion
         DestinationBucket: !Ref LambdaZipsBucketName
+        LandingBucket: !Ref LandingBucketName
+        ProcessingBucket: !Ref ProcessingBucketName
   ArtifactsEncryptionKey:
     Type: 'AWS::KMS::Key'
     Properties:
@@ -197,6 +215,7 @@ Resources:
   LandingBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
+      BucketName: !If [LandingBucket, !Join [ "-", ['ipac-clabsi-landingzone', !Select ["2", [!Split [ /, !Ref AWS::StackId ]]]]], !Ref LandingBucketName ]
       AccessControl: Private
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -209,6 +228,7 @@ Resources:
   ProcessingBucketLogs:
     Type: 'AWS::S3::Bucket'
     Properties:
+      BucketName: !If [ProcessingBucket, !Join [ "-", ['ipac-clabsi-processed', !Select ["2", [!Split [ /, !Ref AWS::StackId ]]]]], !Ref ProcessingBucketName ]
       AccessControl: LogDeliveryWrite
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -219,6 +239,7 @@ Resources:
   ProcessingBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
+      BucketName: !If [ProcessingBucket, !Join [ "-", ['ipac-clabsi-processed', !Select ["2", [!Split [ /, !Ref AWS::StackId ]]]]], !Ref ProcessingBucketName ]
       AccessControl: Private
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -263,6 +284,32 @@ Resources:
       - !GetAtt FunctionsStack.Outputs.JobCreationLambdaExecutionRole
       - !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaExecutionRole
       - !Ref CodeBuildServiceRole
+  ApplyNotificationFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Path: /
+      Policies:
+        - PolicyName: S3BucketNotificationPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowBucketNotification
+                Effect: Allow
+                Action: s3:PutBucketNotification
+                Resource:
+                  - !Sub 'arn:aws:s3:::${ProcessingBucket}'
+                  - !Sub 'arn:aws:s3:::${ProcessingBucket}/*'
+                  - !Sub 'arn:aws:s3:::${LandingBucket}'
+                  - !Sub 'arn:aws:s3:::${LandingBucket}/*'
   EventBridgeEventRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -430,6 +477,10 @@ Resources:
                     - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}'
                     - A: !GetAtt FunctionsStack.Outputs.PreProcessLayerName
                       B: !Ref Suffix
+                  - !Sub
+                    - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}'
+                    - A: !GetAtt FunctionsStack.Outputs.XLRDLayerName
+                      B: !Ref Suffix
               - Effect: Allow
                 Action:
                   - lambda:GetLayerVersion
@@ -445,6 +496,10 @@ Resources:
                   - !Sub
                     - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}:*'
                     - A: !GetAtt FunctionsStack.Outputs.PandasLayerName
+                      B: !Ref Suffix
+                  - !Sub
+                    - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}:*'
+                    - A: !GetAtt FunctionsStack.Outputs.XLRDLayerName
                       B: !Ref Suffix
                   - !Sub
                     - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}:*'
@@ -535,7 +590,7 @@ Resources:
             CognitoClientId: !Ref UserPoolTokenClient
             CognitoUserGroup: !Ref UserPoolGroup
             CognitoUserPool: !Ref IPACUserPool
-      WorkteamName: !Join [ '', [ 'IPAC-Workteam', '-', !Select [ 2, !Split [ /, !Ref AWS::StackId ] ] ] ]
+      WorkteamName: !Join [ '', [ 'WoIPACrkteam', '-', !Select [ 2, !Split [ /, !Ref AWS::StackId ] ] ] ]
   SageMakerGroundTruthExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -550,6 +605,24 @@ Resources:
             - 'sts:AssumeRole'
       ManagedPolicyArns:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSageMakerFullAccess'
+  LandingBucketEventPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:invokeFunction
+      SourceAccount: !Ref 'AWS::AccountId'
+      FunctionName: !GetAtt FunctionsStack.Outputs.PreprocessLambdaName
+      SourceArn: !GetAtt LandingBucket.Arn
+      Principal: s3.amazonaws.com
+  ProcessingBucketEventPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:invokeFunction
+      SourceAccount: !Ref 'AWS::AccountId'
+      FunctionName:
+        - !GetAtt FunctionsStack.Outputs.JobCreationLambdaName
+        - !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaName
+      SourceArn: !GetAtt ProcessingBucket.Arn
+      Principal: s3.amazonaws.com
   CodeBuildProject:
     Type: 'AWS::CodeBuild::Project'
     Properties:
@@ -735,3 +808,12 @@ Outputs:
   ArtifactsStoreBucket:
     Description: This is the Bucket for the Artifact Store
     Value: !Ref ArtifactsStoreBucket
+  LandingBucket:
+    Description: Landing Bucket
+    Value: !Ref LandingBucket
+  ProcessingBucket:
+    Description: Processing Bucket
+    Value: !Ref ProcessingBucket
+  ApplyNotificationFunctionRole:
+    Description: Role for S3 Bucket notifications
+    Value: !GetAtt ApplyNotificationFunctionRole.Arn
