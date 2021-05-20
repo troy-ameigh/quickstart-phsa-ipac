@@ -222,6 +222,17 @@ Resources:
           - StackID: !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ]
         - !Ref LandingBucketName
       AccessControl: Private
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:Put
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: ipac-clabsi/
+                  - Name: suffix
+                    Value: .xlsx
+            Function: !GetAtt FunctionsStack.Outputs.PreprocessLambdaARN
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -240,6 +251,26 @@ Resources:
           - StackID: !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ]
         - !Ref ProcessingBucketName
       AccessControl: LogDeliveryWrite
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:Put
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: source-csv/
+                  - Name: suffix
+                    Value: .csv
+            Function: !GetAtt FunctionsStack.Outputs.JobCreationLambdaARN
+          - Event: s3:ObjectCreated:Put
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: output/
+                  - Name: suffix
+                    Value: .manifest
+            Function: !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaARN
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
