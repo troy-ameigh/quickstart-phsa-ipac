@@ -295,7 +295,7 @@ Resources:
               Service: lambda.amazonaws.com
             Action: sts:AssumeRole
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Path: /
       Policies:
         - PolicyName: S3BucketNotificationPolicy
@@ -306,10 +306,10 @@ Resources:
                 Effect: Allow
                 Action: s3:PutBucketNotification
                 Resource:
-                  - !Sub 'arn:aws:s3:::${ProcessingBucket}'
-                  - !Sub 'arn:aws:s3:::${ProcessingBucket}/*'
-                  - !Sub 'arn:aws:s3:::${LandingBucket}'
-                  - !Sub 'arn:aws:s3:::${LandingBucket}/*'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ProcessingBucket}'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ProcessingBucket}/*'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${LandingBucket}'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${LandingBucket}/*'
   EventBridgeEventRole:
     Type: 'AWS::IAM::Role'
     Properties:
