@@ -215,7 +215,12 @@ Resources:
   LandingBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
-      BucketName: !If [LandingBucket, !Join [ "-", ['ipac-clabsi-landingzone', !Select ["2", [!Split [ /, !Ref AWS::StackId ]]]]], !Ref LandingBucketName ]
+      BucketName: !If
+        - LandingBucket
+        - !Sub
+          - 'ipac-clabsi-landing-${StackID}'
+          - StackID: !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ]
+        - !Ref LandingBucketName
       AccessControl: Private
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -228,7 +233,12 @@ Resources:
   ProcessingBucketLogs:
     Type: 'AWS::S3::Bucket'
     Properties:
-      BucketName: !If [ProcessingBucket, !Join [ "-", ['ipac-clabsi-processed', !Select ["2", [!Split [ /, !Ref AWS::StackId ]]]]], !Ref ProcessingBucketName ]
+      BucketName: !If
+        - ProcessingBucket
+        - !Sub
+          - 'ipac-clabsi-processing-${StackID}'
+          - StackID: !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ]
+        - !Ref ProcessingBucketName
       AccessControl: LogDeliveryWrite
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -239,7 +249,12 @@ Resources:
   ProcessingBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
-      BucketName: !If [ProcessingBucket, !Join [ "-", ['ipac-clabsi-processed', !Select ["2", [!Split [ /, !Ref AWS::StackId ]]]]], !Ref ProcessingBucketName ]
+      BucketName: !If
+        - ProcessingBucket
+        - !Sub
+          - 'ipac-clabsi-processing-${StackID}'
+          - StackID: !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ]
+        - !Ref ProcessingBucketName
       AccessControl: Private
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -575,7 +590,7 @@ Resources:
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
-      Domain: !Select [ 2, !Split [ /, !Ref AWS::StackId ] ]
+      Domain: !Select [2, !Split [ /, !Ref AWS::StackId ]]
       UserPoolId: !Ref IPACUserPool
   UserPoolGroup:
     Type: AWS::Cognito::UserPoolGroup
@@ -590,7 +605,7 @@ Resources:
             CognitoClientId: !Ref UserPoolTokenClient
             CognitoUserGroup: !Ref UserPoolGroup
             CognitoUserPool: !Ref IPACUserPool
-      WorkteamName: !Join [ '', [ 'WoIPACrkteam', '-', !Select [ 2, !Split [ /, !Ref AWS::StackId ] ] ] ]
+      WorkteamName: !Join [ '', [ 'WoIPACrkteam', '-', !Select [2, !Split [ /, !Ref AWS::StackId ]]]]
   SageMakerGroundTruthExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -618,9 +633,16 @@ Resources:
     Properties:
       Action: lambda:invokeFunction
       SourceAccount: !Ref 'AWS::AccountId'
-      FunctionName:
-        - !GetAtt FunctionsStack.Outputs.JobCreationLambdaName
+      FunctionName: !GetAtt FunctionsStack.Outputs.JobCreationLambdaName
         - !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaName
+      SourceArn: !GetAtt ProcessingBucket.Arn
+      Principal: s3.amazonaws.com
+  ProcessingBucketEventPermissionSecond:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:invokeFunction
+      SourceAccount: !Ref 'AWS::AccountId'
+      FunctionName: !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaName
       SourceArn: !GetAtt ProcessingBucket.Arn
       Principal: s3.amazonaws.com
   CodeBuildProject:
