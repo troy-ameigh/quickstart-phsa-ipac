@@ -109,8 +109,8 @@ Parameters:
     Default: ''
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
-  LandingBucket: !Equals [!Ref LandingBucketName, ""]
-  ProcessingBucket: !Equals [!Ref ProcessingBucketName, ""]
+  #LandingBucket: !Equals [!Ref LandingBucketName, ""]
+  #ProcessingBucket: !Equals [!Ref ProcessingBucketName, ""]
 Rules:
   IPACQSRegions:
     Assertions:
@@ -146,10 +146,9 @@ Resources:
       Parameters:
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
-        QSS3BucketRegion: !Ref QSS3BucketRegion
         DestinationBucket: !Ref LambdaZipsBucketName
-        LandingBucket: !Ref LandingBucketName
-        ProcessingBucket: !Ref ProcessingBucketName
+        LandingBucketName: !Ref LandingBucketName
+        ProcessingBucketName: !Ref ProcessingBucketName
   ArtifactsEncryptionKey:
     Type: 'AWS::KMS::Key'
     Properties:
@@ -177,29 +176,6 @@ Resources:
           - kms:GenerateDataKey
           - kms:GenerateDataKeyWithoutPlaintext
           Resource: '*'
-  DataEncryptionKey:
-    Type: 'AWS::KMS::Key'
-    Properties:
-      Description: Symmetric CMK for enryption/decryption of application data
-      KeyPolicy:
-        Version: '2012-10-17'
-        Statement:
-        - Sid: Allow IAM User permissions to manage the key
-          Effect: Allow
-          Principal:
-            AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
-          Action: kms:*
-          Resource: '*'
-        - Sid: Allow use of the key
-          Effect: Allow
-          Principal:
-            AWS:
-              - !GetAtt FunctionsStack.Outputs.PreProcessLambdaExecutionRoleARN
-              - !GetAtt FunctionsStack.Outputs.JobCreationLambdaExecutionRoleARN
-              - !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaExecutionRoleARN
-          Action:
-          - kms:Decrypt
-          Resource: '*'
   ArtifactsStoreBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
@@ -212,92 +188,6 @@ Resources:
                 Ref: ArtifactsEncryptionKey
       VersioningConfiguration:
         Status: Enabled
-  LandingBucket:
-    Type: 'AWS::S3::Bucket'
-    Properties:
-      BucketName: !If
-        - LandingBucket
-        - !Sub
-          - 'ipac-clabsi-landing-${StackID}'
-          - StackID: !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ]
-        - !Ref LandingBucketName
-      AccessControl: Private
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: s3:ObjectCreated:Put
-            Filter:
-              S3Key:
-                Rules:
-                  - Name: prefix
-                    Value: ipac-clabsi/
-                  - Name: suffix
-                    Value: .xlsx
-            Function: !GetAtt FunctionsStack.Outputs.PreprocessLambdaARN
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: 'aws:kms'
-              KMSMasterKeyID:
-                Ref: DataEncryptionKey
-      VersioningConfiguration:
-        Status: Enabled
-  ProcessingBucketLogs:
-    Type: 'AWS::S3::Bucket'
-    Properties:
-      BucketName: !If
-        - ProcessingBucket
-        - !Sub
-          - 'ipac-clabsi-processing-${StackID}'
-          - StackID: !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ]
-        - !Ref ProcessingBucketName
-      AccessControl: LogDeliveryWrite
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: s3:ObjectCreated:Put
-            Filter:
-              S3Key:
-                Rules:
-                  - Name: prefix
-                    Value: source-csv/
-                  - Name: suffix
-                    Value: .csv
-            Function: !GetAtt FunctionsStack.Outputs.JobCreationLambdaARN
-          - Event: s3:ObjectCreated:Put
-            Filter:
-              S3Key:
-                Rules:
-                  - Name: prefix
-                    Value: output/
-                  - Name: suffix
-                    Value: .manifest
-            Function: !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaARN
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: 'aws:kms'
-              KMSMasterKeyID:
-                Ref: DataEncryptionKey
-  ProcessingBucket:
-    Type: 'AWS::S3::Bucket'
-    Properties:
-      BucketName: !If
-        - ProcessingBucket
-        - !Sub
-          - 'ipac-clabsi-processing-${StackID}'
-          - StackID: !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ]
-        - !Ref ProcessingBucketName
-      AccessControl: Private
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: 'aws:kms'
-              KMSMasterKeyID:
-                Ref: DataEncryptionKey
-      VersioningConfiguration:
-        Status: Enabled
-      LoggingConfiguration:
-        DestinationBucketName: !Ref ProcessingBucketLogs
-        LogFilePrefix: processing-logs
   LambdaS3AccessPolicy:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:
@@ -315,47 +205,21 @@ Resources:
           - 's3:DeleteObjectVersion'
           - 's3:ListBucket'
           Resource:
-          - Fn::GetAtt:  [ ProcessingBucket, Arn ]
-          - Fn::Join: [ '', [ !GetAtt ProcessingBucket.Arn, '/*' ]  ]
+          - !GetAtt FunctionsStack.Outputs.ProcessingBucketARN
+          - Fn::Join: [ '', [ !GetAtt FunctionsStack.Outputs.ProcessingBucketARN, '/*' ]  ]
         - Effect: Allow
           Action:
           - 's3:GetObject'
           - 's3:GetObjectVersion'
           - 's3:ListBucket'
           Resource:
-          - Fn::GetAtt:  [ LandingBucket, Arn ]
-          - Fn::Join: [ '', [ !GetAtt LandingBucket.Arn, '/*' ]  ]
+          - !GetAtt FunctionsStack.Outputs.LandingBucketARN
+          - Fn::Join: [ '', [ !GetAtt FunctionsStack.Outputs.LandingBucketARN, '/*' ]  ]
       Roles:
       - !GetAtt FunctionsStack.Outputs.PreProcessLambdaExecutionRole
       - !GetAtt FunctionsStack.Outputs.JobCreationLambdaExecutionRole
       - !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaExecutionRole
       - !Ref CodeBuildServiceRole
-  ApplyNotificationFunctionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Path: /
-      Policies:
-        - PolicyName: S3BucketNotificationPolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Sid: AllowBucketNotification
-                Effect: Allow
-                Action: s3:PutBucketNotification
-                Resource:
-                  - !Sub 'arn:${AWS::Partition}:s3:::${ProcessingBucket}'
-                  - !Sub 'arn:${AWS::Partition}:s3:::${ProcessingBucket}/*'
-                  - !Sub 'arn:${AWS::Partition}:s3:::${LandingBucket}'
-                  - !Sub 'arn:${AWS::Partition}:s3:::${LandingBucket}/*'
   EventBridgeEventRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -559,8 +423,8 @@ Resources:
                   - 's3:PutBucketNotificationConfiguration'
                   - 's3:PutBucketNotification'
                 Resource:
-                  - Fn::GetAtt:  [ LandingBucket, Arn ]
-                  - Fn::GetAtt:  [ ProcessingBucket, Arn ]
+                  - !GetAtt FunctionsStack.Outputs.LandingBucketARN
+                  - !GetAtt FunctionsStack.Outputs.ProcessingBucketARN
               - Effect: Allow
                 Action:
                   - 'iam:PassRole'
@@ -651,31 +515,6 @@ Resources:
             - 'sts:AssumeRole'
       ManagedPolicyArns:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSageMakerFullAccess'
-  LandingBucketEventPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:invokeFunction
-      SourceAccount: !Ref 'AWS::AccountId'
-      FunctionName: !GetAtt FunctionsStack.Outputs.PreprocessLambdaName
-      SourceArn: !GetAtt LandingBucket.Arn
-      Principal: s3.amazonaws.com
-  ProcessingBucketEventPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:invokeFunction
-      SourceAccount: !Ref 'AWS::AccountId'
-      FunctionName: !GetAtt FunctionsStack.Outputs.JobCreationLambdaName
-        - !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaName
-      SourceArn: !GetAtt ProcessingBucket.Arn
-      Principal: s3.amazonaws.com
-  ProcessingBucketEventPermissionSecond:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:invokeFunction
-      SourceAccount: !Ref 'AWS::AccountId'
-      FunctionName: !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaName
-      SourceArn: !GetAtt ProcessingBucket.Arn
-      Principal: s3.amazonaws.com
   CodeBuildProject:
     Type: 'AWS::CodeBuild::Project'
     Properties:
@@ -690,25 +529,21 @@ Resources:
             Value:
               Fn::GetAtt: [ SageMakerGroundTruthExecutionRole, Arn ]
           - Name: S3_raw
-            Value:
-              Ref: LandingBucket
+            Value: !GetAtt FunctionsStack.Outputs.LandingBucketARN
           - Name: patient_bucket
-            Value:
-              Ref: ProcessingBucket
+            Value: !GetAtt FunctionsStack.Outputs.ProcessingBucketARN
           - Name: patient_folder
             Value: "source-csv"
           - Name: REGION
             Value: !Ref 'AWS::Region'
           - Name: ProcessingBucketName
-            Value: !Ref ProcessingBucket
+            Value: !GetAtt FunctionsStack.Outputs.ProcessingBucket
           - Name: ProcessingBucketArn
-            Value:
-              Fn::GetAtt:  [ ProcessingBucket, Arn ]
+            Value: !GetAtt FunctionsStack.Outputs.ProcessingBucketARN
           - Name: LandingBucketName
-            Value: !Ref LandingBucket
+            Value: !GetAtt FunctionsStack.Outputs.LandingBucket
           - Name: LandingBucketArn
-            Value:
-              Fn::GetAtt:  [ LandingBucket, Arn ]
+            Value: !GetAtt FunctionsStack.Outputs.LandingBucketARN
           - Name: PREPROCESS_ROLE
             Value: !GetAtt FunctionsStack.Outputs.PreProcessLambdaExecutionRoleARN
           - Name: JOB_CREATION_ROLE
@@ -728,17 +563,19 @@ Resources:
           - Name: PRIVATE_WORK_TEAM_ARN
             Value: !Ref IPACWorkteam
           - Name: PRODUCTION
-            Value: !Ref ProcessingBucket
+            Value: !GetAtt FunctionsStack.Outputs.ProcessingBucket
           - Name: TASK_AVAILABILITY_LIFE_TIME_IN_SECONDS
             Value: "604800"
           - Name: TASK_TIME_LIMIT_IN_SECONDS
             Value: "3600"
           - Name: TEMPLATE_PATH
-            Value: !Sub "${ProcessingBucket}/ui-template/instructions_v21_QS.template"
+            Value: !Sub
+                     - "${PBucket}/ui-template/instructions_v21_QS.template"
+                     - PBucket: !GetAtt FunctionsStack.Outputs.ProcessingBucket
           - Name: FEEDBACK_FOLDER
             Value: source-csv
           - Name: REPORTING_BUCKET
-            Value: !Ref ProcessingBucket
+            Value: !GetAtt FunctionsStack.Outputs.ProcessingBucket
           - Name: REPORTING_FOLDER
             Value: for_reporting
           - Name: DeploymentTargetAccount
@@ -746,7 +583,7 @@ Resources:
           - Name: SUFFIX
             Value: !Ref Suffix
           - Name: FEEDBACK_BUCKET
-            Value: !Ref ProcessingBucket
+            Value: !GetAtt FunctionsStack.Outputs.ProcessingBucket
       ServiceRole:
         Ref: CodeBuildServiceRole
       Source:
@@ -861,12 +698,3 @@ Outputs:
   ArtifactsStoreBucket:
     Description: This is the Bucket for the Artifact Store
     Value: !Ref ArtifactsStoreBucket
-  LandingBucket:
-    Description: Landing Bucket
-    Value: !Ref LandingBucket
-  ProcessingBucket:
-    Description: Processing Bucket
-    Value: !Ref ProcessingBucket
-  ApplyNotificationFunctionRole:
-    Description: Role for S3 Bucket notifications
-    Value: !GetAtt ApplyNotificationFunctionRole.Arn

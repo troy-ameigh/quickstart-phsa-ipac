@@ -26,18 +26,17 @@ Parameters:
   DestinationBucket:
     Type: String
     Default: ""
-  LandingBucket:
+  LandingBucketName:
     Type: String
     Default: ""
-  ProcessingBucket:
-    Type: String
-    Default: ""
-  ApplyNotificationFunctionRole:
+  ProcessingBucketName:
     Type: String
     Default: ""
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
   CreateDestBucket: !Equals [!Ref DestinationBucket, ""]
+  LandingBucket: !Equals [ !Ref LandingBucketName, "" ]
+  ProcessingBucket: !Equals [ !Ref ProcessingBucketName, "" ]
 Resources:
   LambdaZipsBucket:
     Condition: CreateDestBucket
@@ -165,13 +164,39 @@ Resources:
               finally:
                   timer.cancel()
                   cfnresponse.send(event, context, status, {}, None)
+  ApplyNotificationFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Path: /
+      Policies:
+        - PolicyName: S3BucketNotificationPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowBucketNotification
+                Effect: Allow
+                Action: s3:PutBucketNotification
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ProcessingBucket}'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ProcessingBucket}/*'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${LandingBucket}'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${LandingBucket}/*'
   ApplyBucketNotificationFunction:
     Type: AWS::Lambda::Function
     Properties:
       Description: Dummy function, just logs the received event
       Handler: index.handler
       Runtime: python3.7
-      Role: !Ref 'ApplyNotificationFunctionRole'
+      Role: !GetAtt ApplyNotificationFunctionRole.Arn
       Timeout: 240
       Code:
         ZipFile: |
@@ -235,22 +260,157 @@ Resources:
               status = cfnresponse.FAILED
             finally:
               cfnresponse.send(event, context, status, {}, new_physical_id)
+  LandingBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !If
+        - LandingBucket
+        - !Sub
+          - 'ipac-clabsi-landing-${StackID}'
+          - StackID: !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ]
+        - !Ref LandingBucketName
+      AccessControl: Private
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+              KMSMasterKeyID:
+                Ref: DataEncryptionKey
+      VersioningConfiguration:
+        Status: Enabled
+  ProcessingBucketLogs:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !If
+        - ProcessingBucket
+        - !Sub
+          - 'ipac-clabsi-logs-${StackID}'
+          - StackID: !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ]
+        - !Ref ProcessingBucketName
+      AccessControl: LogDeliveryWrite
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+              KMSMasterKeyID:
+                Ref: DataEncryptionKey
+  ProcessingBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !If
+        - ProcessingBucket
+        - !Sub
+          - 'ipac-clabsi-processing-${StackID}'
+          - StackID: !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ]
+        - !Ref ProcessingBucketName
+      AccessControl: Private
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+              KMSMasterKeyID:
+                Ref: DataEncryptionKey
+      VersioningConfiguration:
+        Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Ref ProcessingBucketLogs
+        LogFilePrefix: processing-logs
+  LandingBucketEventPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:invokeFunction
+      SourceAccount: !Ref 'AWS::AccountId'
+      FunctionName: !Ref PreprocessLambda
+      SourceArn: !GetAtt LandingBucket.Arn
+      Principal: s3.amazonaws.com
+  ProcessingBucketEventPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:invokeFunction
+      SourceAccount: !Ref 'AWS::AccountId'
+      FunctionName: !Ref JobCreationLambda
+      SourceArn: !GetAtt ProcessingBucket.Arn
+      Principal: s3.amazonaws.com
+  ProcessingBucketEventPermissionSecond:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:invokeFunction
+      SourceAccount: !Ref 'AWS::AccountId'
+      FunctionName: !Ref LoopLambda
+      SourceArn: !GetAtt ProcessingBucket.Arn
+      Principal: s3.amazonaws.com
   ApplyNotificationLandingBucket:
     Type: Custom::ApplyNotification
     Properties:
-      ServiceToken: !GetAtt 'ApplyBucketNotificationFunction.Arn'
+      ServiceToken: !GetAtt ApplyBucketNotificationFunction.Arn
       S3Bucket: !Ref 'LandingBucket'
-      FunctionARN: !GetAtt 'PreprocessLambda.Arn'
-      NotificationId: S3ObjectCreatedEvent
+      FunctionARN: !GetAtt PreprocessLambda.Arn
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:Put
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: ipac-clabsi/
+                  - Name: suffix
+                    Value: .xlsx
+            Function: !GetAtt PreprocessLambda.Arn
   ApplyNotificationProcessingBucket:
     Type: Custom::ApplyNotification
     Properties:
-      ServiceToken: !GetAtt 'ApplyBucketNotificationFunction.Arn'
+      ServiceToken: !GetAtt ApplyBucketNotificationFunction.Arn
       S3Bucket: !Ref 'ProcessingBucket'
-      FunctionARN:
-        - !GetAtt 'JobCreationLambda.Arn'
-        - !GetAtt 'LoopLambda.Arn'
-      NotificationId: S3ObjectCreatedEvent
+      FunctionARN: !GetAtt JobCreationLambda.Arn
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:Put
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: source-csv/
+                  - Name: suffix
+                    Value: .csv
+            Function: !GetAtt JobCreationLambda.Arn
+  ApplyNotificationProcessingBucketA:
+    Type: Custom::ApplyNotification
+    Properties:
+      ServiceToken: !GetAtt ApplyBucketNotificationFunction.Arn
+      S3Bucket: !Ref 'ProcessingBucket'
+      FunctionARN: !GetAtt LoopLambda.Arn
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:Put
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: output/
+                  - Name: suffix
+                    Value: .manifest
+            Function: !GetAtt LoopLambda.Arn
+  DataEncryptionKey:
+    Type: 'AWS::KMS::Key'
+    Properties:
+      Description: Symmetric CMK for enryption/decryption of application data
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Allow IAM User permissions to manage the key
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
+            Action: kms:*
+            Resource: '*'
+          - Sid: Allow use of the key
+            Effect: Allow
+            Principal:
+               AWS: !Sub 'arn:${AWS::Partition}:lambda::${AWS::AccountId}:function:*'
+            Action:
+              - kms:Decrypt
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:s3:::*'
   PreProcessLambdaExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -459,7 +619,10 @@ Resources:
   KeepjobaliveLambdaSchedule:
     Type: AWS::Events::Rule
     Properties:
-      Name: !Sub ${AWS::StackId}KeepjobaliveLambdaSchedule
+      Name:
+       !Sub
+       - KeepjobaliveLambdaSchedule-${StackID}
+       - StackID: !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ]
       RoleArn: !GetAtt JobCreationLambdaExecutionRole.Arn
       ScheduleExpression: "rate(5 minute)"
       State: ENABLED
@@ -578,5 +741,21 @@ Outputs:
     Value: !Ref SagemakerphcpostprocessLambda
   XLRDLayerName:
     Value: !Ref xlrdlayer
+  ApplyBucketNotificationFunctionARN:
+    Value: !GetAtt ApplyBucketNotificationFunction.Arn
+  JobCreationLambdaARN:
+    Value: !GetAtt JobCreationLambda.Arn
+  FeedbackLoopLambdaARN:
+    Value: !GetAtt LoopLambda.Arn
+  PreprocessLambdaARN:
+    Value: !GetAtt PreprocessLambda.Arn
+  ProcessingBucketARN:
+    Value: !GetAtt ProcessingBucket.Arn
+  LandingBucketARN:
+    Value: !GetAtt LandingBucket.Arn
+  ProcessingBucket:
+    Value: !Ref ProcessingBucket
+  LandingBucket:
+    Value: !Ref LandingBucket
 
 
