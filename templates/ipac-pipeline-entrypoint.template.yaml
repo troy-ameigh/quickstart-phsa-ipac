@@ -485,25 +485,25 @@ Resources:
                   - 'logs:CreateLogGroup'
                   - 'logs:CreateLogStream'
                   - 'logs:PutLogEvents'
-                Resource: '*'
+                Resource: !Ref QSS3BucketName
               - Effect: Allow
                 Action:
                   - 'codecommit:GitPull'
-                Resource: '*'
+                Resource: !Ref QSS3BucketName
               - Effect: Allow
                 Action:
                   - 's3:GetObject'
                   - 's3:GetObjectVersion'
-                Resource: '*'
+                Resource: !Ref QSS3BucketName
               - Effect: Allow
                 Action:
                   - 's3:PutObject'
-                Resource: '*'
+                Resource: !Ref QSS3BucketName
               - Effect: Allow
                 Action:
                   - 's3:GetBucketAcl'
                   - 's3:GetBucketLocation'
-                Resource: '*'
+                Resource: !Ref QSS3BucketName
               - Effect: Allow
                 Action:
                   - lambda:CreateFunction
