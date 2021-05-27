@@ -173,7 +173,8 @@ Resources:
           - Effect: Allow
             Principal:
               Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
+            Action:
+            - sts:AssumeRole
       ManagedPolicyArns:
         - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Path: /
@@ -184,7 +185,8 @@ Resources:
             Statement:
               - Sid: AllowBucketNotification
                 Effect: Allow
-                Action: s3:PutBucketNotification
+                Action:
+                - s3:PutBucketNotification
                 Resource:
                   - !Sub 'arn:${AWS::Partition}:s3:::${ProcessingBucket}'
                   - !Sub 'arn:${AWS::Partition}:s3:::${ProcessingBucket}/*'
@@ -401,7 +403,8 @@ Resources:
             Effect: Allow
             Principal:
               AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
-            Action: kms:*
+            Action:
+            - kms:*
             Resource: '*'
           - Sid: Allow use of the key
             Effect: Allow

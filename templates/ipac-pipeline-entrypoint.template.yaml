@@ -160,8 +160,55 @@ Resources:
           Effect: Allow
           Principal:
             AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
-          Action: kms:*
-          Resource: '*'
+          Action:
+          - kms:CancelKeyDeletion
+          - kms:ConnectCustomKeyStore
+          - kms:CreateAlias
+          - kms:CreateCustomKeyStore
+          - kms:CreateGrant
+          - kms:CreateKey
+          - kms:Decrypt
+          - kms:DeleteAlias
+          - kms:DeleteCustomKeyStore
+          - kms:DeleteImportedKeyMaterial
+          - kms:DescribeCustomKeyStores
+          - kms:DescribeKey
+          - kms:DisableKey
+          - kms:DisableKeyRotation
+          - kms:DisconnectCustomKeyStore
+          - kms:EnableKey
+          - kms:EnableKeyRotation
+          - kms:Encrypt
+          - kms:GenerateDataKey
+          - kms:GenerateDataKeyPair
+          - kms:GenerateDataKeyPairWithoutPlaintext
+          - kms:GenerateDataKeyWithoutPlaintext
+          - kms:GenerateRandom
+          - kms:GetKeyPolicy
+          - kms:GetKeyRotationStatus
+          - kms:GetParametersForImport
+          - kms:GetPublicKey
+          - kms:ImportKeyMaterial
+          - kms:ListAliases
+          - kms:ListGrants
+          - kms:ListKeyPolicies
+          - kms:ListKeys
+          - kms:ListResourceTags
+          - kms:ListRetirableGrants
+          - kms:PutKeyPolicy
+          - kms:ReEncryptFrom
+          - kms:ReEncryptTo
+          - kms:RetireGrant
+          - kms:RevokeGrant
+          - kms:ScheduleKeyDeletion
+          - kms:Sign
+          - kms:TagResource
+          - kms:UntagResource
+          - kms:UpdateAlias
+          - kms:UpdateCustomKeyStore
+          - kms:UpdateKeyDescription
+          - kms:Verify
+          Resource: !Sub "arn:${AWS::Partition}::${AWS::Region}:${AWS::AccountId}:*"
         - Sid: Allow use of the key
           Effect: Allow
           Principal:
@@ -172,10 +219,11 @@ Resources:
           - kms:DescribeKey
           - kms:Encrypt
           - kms:Decrypt
-          - kms:ReEncrypt*
+          - kms:ReEncryptFrom
+          - kms:ReEncryptTo
           - kms:GenerateDataKey
           - kms:GenerateDataKeyWithoutPlaintext
-          Resource: '*'
+          Resource: !Sub "arn:${AWS::Partition}::${AWS::Region}:${AWS::AccountId}:*"
   ArtifactsStoreBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
@@ -242,7 +290,9 @@ Resources:
                 Action:
                   - 'codepipeline:StartPipelineExecution'
                 Resource:
-                  Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:codepipeline:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: CodePipeline ]  ]
+                  !Sub
+                    - "arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipeline}"
+                    - CodePipeline: !Ref CodePipeline
   CodePipelineServiceRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -272,7 +322,9 @@ Resources:
                   - codecommit:UploadArchive
                   - codecommit:GetUploadArchiveStatus
                 Resource:
-                  Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:codecommit:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: RepositoryName ] ]
+                  !Sub
+                    - "arn:${AWS::Partition}:codecommit:${AWS::Region}:${AWS::AccountId}:${RepositoryName}"
+                    - RepositoryName: !Ref RepositoryName
         - PolicyName: CodePipelineBuildStage
           PolicyDocument:
             Version: 2012-10-17
@@ -282,15 +334,134 @@ Resources:
                   - codebuild:StartBuild
                   - codebuild:BatchGetBuilds
                 Resource:
-                  Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:codebuild:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':project/', Ref: CodeBuildProject ] ]
+                  !Sub
+                    - "arn:${AWS::Partition}:codebuild:${AWS::Region}:${AWS::AccountId}:project/${CodeBuildProject}"
+                    - CodeBuildProject: !Ref CodeBuildProject
         - PolicyName: CodePipelineArtifactsStoreObjectAccess
           PolicyDocument:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
                 Action:
-                  - s3:*
-                Resource: '*'
+                  - s3:AbortMultipartUpload
+                  - s3:BypassGovernanceRetention
+                  - s3:CreateAccessPoint
+                  - s3:CreateAccessPointForObjectLambda
+                  - s3:CreateBucket
+                  - s3:CreateJob
+                  - s3:DeleteAccessPoint
+                  - s3:DeleteAccessPointForObjectLambda
+                  - s3:DeleteAccessPointPolicy
+                  - s3:DeleteAccessPointPolicyForObjectLambda
+                  - s3:DeleteBucket
+                  - s3:DeleteBucketOwnershipControls
+                  - s3:DeleteBucketPolicy
+                  - s3:DeleteBucketWebsite
+                  - s3:DeleteJobTagging
+                  - s3:DeleteObject
+                  - s3:DeleteObjectTagging
+                  - s3:DeleteObjectVersion
+                  - s3:DeleteObjectVersionTagging
+                  - s3:DeleteStorageLensConfiguration
+                  - s3:DeleteStorageLensConfigurationTagging
+                  - s3:DescribeJob
+                  - s3:GetAccelerateConfiguration
+                  - s3:GetAccessPoint
+                  - s3:GetAccessPointConfigurationForObjectLambda
+                  - s3:GetAccessPointForObjectLambda
+                  - s3:GetAccessPointPolicy
+                  - s3:GetAccessPointPolicyForObjectLambda
+                  - s3:GetAccessPointPolicyStatus
+                  - s3:GetAccessPointPolicyStatusForObjectLambda
+                  - s3:GetAccountPublicAccessBlock
+                  - s3:GetAnalyticsConfiguration
+                  - s3:GetBucketAcl
+                  - s3:GetBucketCORS
+                  - s3:GetBucketLocation
+                  - s3:GetBucketLogging
+                  - s3:GetBucketNotification
+                  - s3:GetBucketObjectLockConfiguration
+                  - s3:GetBucketOwnershipControls
+                  - s3:GetBucketPolicy
+                  - s3:GetBucketPolicyStatus
+                  - s3:GetBucketPublicAccessBlock
+                  - s3:GetBucketRequestPayment
+                  - s3:GetBucketTagging
+                  - s3:GetBucketVersioning
+                  - s3:GetBucketWebsite
+                  - s3:GetEncryptionConfiguration
+                  - s3:GetIntelligentTieringConfiguration
+                  - s3:GetInventoryConfiguration
+                  - s3:GetJobTagging
+                  - s3:GetLifecycleConfiguration
+                  - s3:GetMetricsConfiguration
+                  - s3:GetObject
+                  - s3:GetObjectAcl
+                  - s3:GetObjectLegalHold
+                  - s3:GetObjectRetention
+                  - s3:GetObjectTagging
+                  - s3:GetObjectTorrent
+                  - s3:GetObjectVersion
+                  - s3:GetObjectVersionAcl
+                  - s3:GetObjectVersionForReplication
+                  - s3:GetObjectVersionTagging
+                  - s3:GetObjectVersionTorrent
+                  - s3:GetReplicationConfiguration
+                  - s3:GetStorageLensConfiguration
+                  - s3:GetStorageLensConfigurationTagging
+                  - s3:GetStorageLensDashboard
+                  - s3:ListAccessPoints
+                  - s3:ListAccessPointsForObjectLambda
+                  - s3:ListAllMyBuckets
+                  - s3:ListBucket
+                  - s3:ListBucketMultipartUploads
+                  - s3:ListBucketVersions
+                  - s3:ListJobs
+                  - s3:ListMultipartUploadParts
+                  - s3:ListStorageLensConfigurations
+                  - s3:ObjectOwnerOverrideToBucketOwner
+                  - s3:PutAccelerateConfiguration
+                  - s3:PutAccessPointConfigurationForObjectLambda
+                  - s3:PutAccessPointPolicy
+                  - s3:PutAccessPointPolicyForObjectLambda
+                  - s3:PutAccountPublicAccessBlock
+                  - s3:PutAnalyticsConfiguration
+                  - s3:PutBucketAcl
+                  - s3:PutBucketCORS
+                  - s3:PutBucketLogging
+                  - s3:PutBucketNotification
+                  - s3:PutBucketObjectLockConfiguration
+                  - s3:PutBucketOwnershipControls
+                  - s3:PutBucketPolicy
+                  - s3:PutBucketPublicAccessBlock
+                  - s3:PutBucketRequestPayment
+                  - s3:PutBucketTagging
+                  - s3:PutBucketVersioning
+                  - s3:PutBucketWebsite
+                  - s3:PutEncryptionConfiguration
+                  - s3:PutIntelligentTieringConfiguration
+                  - s3:PutInventoryConfiguration
+                  - s3:PutJobTagging
+                  - s3:PutLifecycleConfiguration
+                  - s3:PutMetricsConfiguration
+                  - s3:PutObject
+                  - s3:PutObjectAcl
+                  - s3:PutObjectLegalHold
+                  - s3:PutObjectRetention
+                  - s3:PutObjectTagging
+                  - s3:PutObjectVersionAcl
+                  - s3:PutObjectVersionTagging
+                  - s3:PutReplicationConfiguration
+                  - s3:PutStorageLensConfiguration
+                  - s3:PutStorageLensConfigurationTagging
+                  - s3:ReplicateDelete
+                  - s3:ReplicateObject
+                  - s3:ReplicateTags
+                  - s3:RestoreObject
+                  - s3:UpdateJobPriority
+                  - s3:UpdateJobStatus
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:*"
   CodeBuildServiceRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -675,7 +846,9 @@ Resources:
         detail-type:
           - 'CodeCommit Repository State is updated'
         resources:
-          - Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:codecommit:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: RepositoryName ] ]
+          !Sub
+            - "arn:${AWS::Partition}:codecommit:${AWS::Region}:${AWS::AccountId}:${RepositoryName}"
+            - RepositoryName: !Ref RepositoryName
         detail:
           event:
             - referenceCreated
@@ -689,7 +862,9 @@ Resources:
       State: ENABLED
       Targets:
         - Arn:
-            Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:codepipeline:', Ref: 'AWS::Region', ':', Ref: 'AWS::AccountId', ':', Ref: CodePipeline ]  ]
+            !Sub
+              - "arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipeline}"
+              - CodePipeline: !Ref CodePipeline
           RoleArn:
             Fn::GetAtt: [ EventBridgeEventRole, Arn ]
           Id:
