@@ -764,8 +764,7 @@ Resources:
     Properties:
       ApplicationName:
         Ref: CodeDeployApplication
-      DeploymentGroupName:
-        Fn::Join: [ '', [ Ref: ApplicationName, Ref: Suffix ]  ]
+      DeploymentGroupName: !Join ['', [ !Ref ApplicationName, '-', !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ], !Ref Suffix ]]
       DeploymentStyle:
         DeploymentOption: WITH_TRAFFIC_CONTROL
         DeploymentType: BLUE_GREEN
@@ -774,8 +773,7 @@ Resources:
   CodeDeployApplication:
     Type: 'AWS::CodeDeploy::Application'
     Properties:
-      ApplicationName:
-        Fn::Join: [ '', [ Ref: ApplicationName, Ref: Suffix ] ]
+      ApplicationName: !Join ['', [ !Ref ApplicationName, '-', !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ], !Ref Suffix ]]
       ComputePlatform: Lambda
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
