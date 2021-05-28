@@ -485,25 +485,40 @@ Resources:
                   - 'logs:CreateLogGroup'
                   - 'logs:CreateLogStream'
                   - 'logs:PutLogEvents'
-                Resource: '*'
+                Resource: 
+                  !Sub 
+                    - "arn:${AWS::Partition}:s3:::${Bucket}"
+                    - Bucket: !Ref QSS3BucketName
               - Effect: Allow
                 Action:
                   - 'codecommit:GitPull'
-                Resource: '*'
+                Resource: 
+                  !Sub 
+                    - "arn:${AWS::Partition}:s3:::${Bucket}"
+                    - Bucket: !Ref QSS3BucketName
               - Effect: Allow
                 Action:
                   - 's3:GetObject'
                   - 's3:GetObjectVersion'
-                Resource: '*'
+                Resource: 
+                  !Sub 
+                    - "arn:${AWS::Partition}:s3:::${Bucket}"
+                    - Bucket: !Ref QSS3BucketName
               - Effect: Allow
                 Action:
                   - 's3:PutObject'
-                Resource: '*'
+                Resource: 
+                  !Sub 
+                    - "arn:${AWS::Partition}:s3:::${Bucket}"
+                    - Bucket: !Ref QSS3BucketName
               - Effect: Allow
                 Action:
                   - 's3:GetBucketAcl'
                   - 's3:GetBucketLocation'
-                Resource: '*'
+                Resource: 
+                  !Sub 
+                    - "arn:${AWS::Partition}:s3:::${Bucket}"
+                    - Bucket: !Ref QSS3BucketName
               - Effect: Allow
                 Action:
                   - lambda:CreateFunction
