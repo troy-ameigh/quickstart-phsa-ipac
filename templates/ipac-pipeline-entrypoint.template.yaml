@@ -23,6 +23,10 @@ Metadata:
           - QSS3KeyPrefix
           - QSS3BucketRegion
           - LambdaZipsBucketName
+      - Label:
+          default: Optional Configuration item
+        Parameters:
+          - KeyAdminGrpARN
     ParameterLabels:
       RepositoryName:
         default: "Which pre-existing CodeCommit repository this pipeline should monitor?"
@@ -46,6 +50,8 @@ Metadata:
         default: Landingzone bucket name
       ProcessingBucketName:
         default: Processing bucket name
+      KeyAdminGrpARN:
+        default: IAM group ARN that can manage KMS keys
 Parameters:
   RepositoryName:
     Type: String
@@ -109,8 +115,6 @@ Parameters:
     Default: ''
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
-  #LandingBucket: !Equals [!Ref LandingBucketName, ""]
-  #ProcessingBucket: !Equals [!Ref ProcessingBucketName, ""]
 Rules:
   IPACQSRegions:
     Assertions:
@@ -151,6 +155,15 @@ Resources:
         ProcessingBucketName: !Ref ProcessingBucketName
   ArtifactsEncryptionKey:
     Type: 'AWS::KMS::Key'
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - EIAMPolicyWildcardResource
+            - EIAMPolicyActionWildcard
+          ignore_reasons:
+            EIAMPolicyWildcardResource: Resource '*' at lines 204 & 223, is conditional.
+            EIAMPolicyActionWildcard: This is based on AWS Documentation.
     Properties:
       Description: Symmetric CMK for enryption/decryption of Pipeline artifacts
       KeyPolicy:
@@ -160,55 +173,32 @@ Resources:
           Effect: Allow
           Principal:
             AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
+          Action: kms:*
+          Resource: '*'
+        - Sid: Allow administration of the key
+          Effect: Allow
+          Principal:
+            AWS:
+              - Fn::GetAtt: [ CodePipelineServiceRole, Arn ]
+              - Fn::GetAtt: [ CodeBuildServiceRole, Arn ]
           Action:
-          - kms:CancelKeyDeletion
-          - kms:ConnectCustomKeyStore
-          - kms:CreateAlias
-          - kms:CreateCustomKeyStore
-          - kms:CreateGrant
-          - kms:CreateKey
-          - kms:Decrypt
-          - kms:DeleteAlias
-          - kms:DeleteCustomKeyStore
-          - kms:DeleteImportedKeyMaterial
-          - kms:DescribeCustomKeyStores
-          - kms:DescribeKey
-          - kms:DisableKey
-          - kms:DisableKeyRotation
-          - kms:DisconnectCustomKeyStore
-          - kms:EnableKey
-          - kms:EnableKeyRotation
-          - kms:Encrypt
-          - kms:GenerateDataKey
-          - kms:GenerateDataKeyPair
-          - kms:GenerateDataKeyPairWithoutPlaintext
-          - kms:GenerateDataKeyWithoutPlaintext
-          - kms:GenerateRandom
-          - kms:GetKeyPolicy
-          - kms:GetKeyRotationStatus
-          - kms:GetParametersForImport
-          - kms:GetPublicKey
-          - kms:ImportKeyMaterial
-          - kms:ListAliases
-          - kms:ListGrants
-          - kms:ListKeyPolicies
-          - kms:ListKeys
-          - kms:ListResourceTags
-          - kms:ListRetirableGrants
-          - kms:PutKeyPolicy
-          - kms:ReEncryptFrom
-          - kms:ReEncryptTo
-          - kms:RetireGrant
-          - kms:RevokeGrant
+          - kms:Create*
+          - kms:Describe*
+          - kms:Enable*
+          - kms:List*
+          - kms:Put*
+          - kms:Update*
+          - kms:Revoke*
+          - kms:Disable*
+          - kms:Get*
+          - kms:Delete*
           - kms:ScheduleKeyDeletion
-          - kms:Sign
-          - kms:TagResource
-          - kms:UntagResource
-          - kms:UpdateAlias
-          - kms:UpdateCustomKeyStore
-          - kms:UpdateKeyDescription
-          - kms:Verify
-          Resource: !Sub "arn:${AWS::Partition}::${AWS::Region}:${AWS::AccountId}:*"
+          - kms:CancelKeyDeletion
+          Resource: '*'
+          Condition:
+            StringEquals:
+              'kms:CallerAccount': !Ref 'AWS::AccountId'
+              'kms:ViaService': !Sub 'codepipeline.${AWS::Region}.amazonaws.com'
         - Sid: Allow use of the key
           Effect: Allow
           Principal:
@@ -223,7 +213,11 @@ Resources:
           - kms:ReEncryptTo
           - kms:GenerateDataKey
           - kms:GenerateDataKeyWithoutPlaintext
-          Resource: !Sub "arn:${AWS::Partition}::${AWS::Region}:${AWS::AccountId}:*"
+          Resource: "*"
+          Condition:
+            StringEquals:
+              'kms:CallerAccount': !Ref 'AWS::AccountId'
+              'kms:ViaService': !Sub 'codepipeline.${AWS::Region}.amazonaws.com'
   ArtifactsStoreBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
@@ -487,14 +481,14 @@ Resources:
                   - 'logs:PutLogEvents'
                 Resource: 
                   !Sub 
-                    - "arn:${AWS::Partition}:s3:::${Bucket}"
+                    - "arn:${AWS::Partition}:s3:::${Bucket}/*"
                     - Bucket: !Ref QSS3BucketName
               - Effect: Allow
                 Action:
                   - 'codecommit:GitPull'
                 Resource: 
                   !Sub 
-                    - "arn:${AWS::Partition}:s3:::${Bucket}"
+                    - "arn:${AWS::Partition}:s3:::${Bucket}/*"
                     - Bucket: !Ref QSS3BucketName
               - Effect: Allow
                 Action:
@@ -502,14 +496,14 @@ Resources:
                   - 's3:GetObjectVersion'
                 Resource: 
                   !Sub 
-                    - "arn:${AWS::Partition}:s3:::${Bucket}"
+                    - "arn:${AWS::Partition}:s3:::${Bucket}/*"
                     - Bucket: !Ref QSS3BucketName
               - Effect: Allow
                 Action:
                   - 's3:PutObject'
                 Resource: 
                   !Sub 
-                    - "arn:${AWS::Partition}:s3:::${Bucket}"
+                    - "arn:${AWS::Partition}:s3:::${Bucket}/*"
                     - Bucket: !Ref QSS3BucketName
               - Effect: Allow
                 Action:
@@ -517,7 +511,7 @@ Resources:
                   - 's3:GetBucketLocation'
                 Resource: 
                   !Sub 
-                    - "arn:${AWS::Partition}:s3:::${Bucket}"
+                    - "arn:${AWS::Partition}:s3:::${Bucket}/*"
                     - Bucket: !Ref QSS3BucketName
               - Effect: Allow
                 Action:
@@ -686,7 +680,7 @@ Resources:
             CognitoClientId: !Ref UserPoolTokenClient
             CognitoUserGroup: !Ref UserPoolGroup
             CognitoUserPool: !Ref IPACUserPool
-      WorkteamName: !Join [ '', [ 'WoIPACrkteam', '-', !Select [2, !Split [ /, !Ref AWS::StackId ]]]]
+      WorkteamName: !Join [ '', [ 'IPACWorkteam', '-', !Select [2, !Split [ /, !Ref AWS::StackId ]]]]
   SageMakerGroundTruthExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -777,9 +771,7 @@ Resources:
   CodeDeployDeploymentGroup:
     Type: 'AWS::CodeDeploy::DeploymentGroup'
     Properties:
-      ApplicationName:
-        Ref: CodeDeployApplication
-      DeploymentGroupName: !Join ['', [ !Ref ApplicationName, '-', !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ], !Ref Suffix ]]
+      ApplicationName: !Ref CodeDeployApplication
       DeploymentStyle:
         DeploymentOption: WITH_TRAFFIC_CONTROL
         DeploymentType: BLUE_GREEN
@@ -788,7 +780,6 @@ Resources:
   CodeDeployApplication:
     Type: 'AWS::CodeDeploy::Application'
     Properties:
-      ApplicationName: !Join ['', [ !Ref ApplicationName, '-', !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ], !Ref Suffix ]]
       ComputePlatform: Lambda
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
@@ -859,9 +850,7 @@ Resources:
         detail-type:
           - 'CodeCommit Repository State is updated'
         resources:
-          !Sub
-            - "arn:${AWS::Partition}:codecommit:${AWS::Region}:${AWS::AccountId}:${RepositoryName}"
-            - RepositoryName: !Ref RepositoryName
+          - !Sub 'arn:${AWS::Partition}:codecommit:${AWS::Region}:${AWS::AccountId}:${RepositoryName}*'
         detail:
           event:
             - referenceCreated

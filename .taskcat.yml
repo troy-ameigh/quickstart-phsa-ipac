@@ -21,6 +21,7 @@ tests:
       QSS3BucketRegion: $[taskcat_current_region]
       Environment: dev
       Region: $[taskcat_current_region]
+      ApplicationName: $[taskcat_genpass_12A]
       #SageMakerPrivateWorkTeamArn: arn:aws:sagemaker:ca-central-1:165536952993:workteam/private-crowd/digitalproducts-ipac
     regions:
     - us-east-1
