@@ -27,7 +27,11 @@ Metadata:
           - QSS3BucketRegion
           - LambdaZipsBucketName
       - Label:
-          default: Optional Configuration item
+          default: Optional Cognito configurations
+        Parameters:
+          - CognitoUserPool
+          - CognitoClientId
+          - CognitoUserGroup
     ParameterLabels:
       RepositoryName:
         default: "Which pre-existing CodeCommit repository this pipeline should monitor?"
@@ -51,6 +55,12 @@ Metadata:
         default: Landingzone bucket name
       ProcessingBucketName:
         default: Processing bucket name
+      CognitoUserPool:
+        default: Cognito User Pool
+      CognitoClientId:
+        default: Cognito Client Id
+      CognitoUserGroup:
+        default: Cognito User Group
 Parameters:
   RepositoryName:
     Type: String
