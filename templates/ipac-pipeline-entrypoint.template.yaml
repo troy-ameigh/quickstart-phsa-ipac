@@ -116,8 +116,21 @@ Parameters:
     Type: String
     Description: Processing Bucket
     Default: ''
+  CognitoUserPool:
+    Type: String
+    Description: '[Optional]Cognito User pool to use with Sagemaker Workteams. If one is not provided this will be created for you.'
+    Default: ''
+  CognitoClientId:
+    Type: String
+    Description: '[Optional]Cognito Client ID to use with Sagemaker Workteams. If one is not provided this will be created for you.'
+    Default: ''
+  CognitoUserGroup:
+    Type: String
+    Description: '[Optional]Cognito User Group to use with Sagemaker Workteams. If one is not provided this will be created for you.'
+    Default: ''
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
+  NewCognitoClient: !Equals [!Ref CognitoUserPool, '']
 Rules:
   IPACQSRegions:
     Assertions:
@@ -633,6 +646,7 @@ Resources:
       ManagedPolicyArns:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda'
   IPACUserPool:
+    Condition: NewCognitoClient
     Type: AWS::Cognito::UserPool
     Properties:
       AdminCreateUserConfig:
@@ -648,6 +662,7 @@ Resources:
           RequireNumbers: true
           RequireSymbols: true
   UserPoolTokenClient:
+    Condition: NewCognitoClient
     Type: AWS::Cognito::UserPoolClient
     Properties:
       AllowedOAuthFlowsUserPoolClient: true
@@ -666,11 +681,13 @@ Resources:
       ExplicitAuthFlows:
         - USER_PASSWORD_AUTH
   UserPoolDomain:
+    Condition: NewCognitoClient
     Type: AWS::Cognito::UserPoolDomain
     Properties:
       Domain: !Select [2, !Split [ /, !Ref AWS::StackId ]]
       UserPoolId: !Ref IPACUserPool
   UserPoolGroup:
+    Condition: NewCognitoClient
     Type: AWS::Cognito::UserPoolGroup
     Properties:
       UserPoolId: !Ref IPACUserPool
@@ -680,9 +697,9 @@ Resources:
       Description: This is the work team for Sagemaker for the IPAC work flow.
       MemberDefinitions:
         - CognitoMemberDefinition:
-            CognitoClientId: !Ref UserPoolTokenClient
-            CognitoUserGroup: !Ref UserPoolGroup
-            CognitoUserPool: !Ref IPACUserPool
+            CognitoClientId: !If [NewCognitoClient, !Ref UserPoolTokenClient, !Ref CognitoClientId]
+            CognitoUserGroup: !If [NewCognitoClient, !Ref UserPoolGroup, !Ref CognitoUserGroup]
+            CognitoUserPool: !If [NewCognitoClient, !Ref IPACUserPool, !Ref CognitoUserPool]
       WorkteamName: !Join [ '', [ 'IPACWorkteam', '-', !Select [2, !Split [ /, !Ref AWS::StackId ]]]]
   SageMakerGroundTruthExecutionRole:
     Type: 'AWS::IAM::Role'

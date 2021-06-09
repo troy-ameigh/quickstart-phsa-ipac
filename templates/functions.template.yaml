@@ -1,8 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Deploys Lambda functions required for the PHSA IPAC Quick Start (qs-1romd7rj8)
 Metadata:
-  QuickStartDocumentation:
-    Order: "2"
   QSLint:
     Exclusions: [ W9001, W9002, W9003, W9004, W9006, W3005 ]
 Parameters:
@@ -341,7 +339,6 @@ Resources:
       S3Bucket: !Ref 'LandingBucket'
       LambdaFunctionConfigurations:
       - Events: ["s3:ObjectCreated:Put"]
-        #FunctionARN: !GetAtt PreprocessLambda.Arn
         Id: S3ObjectCreatedEventLandingBucket
         Filter:
           Key:
@@ -356,11 +353,9 @@ Resources:
     Properties:
       ServiceToken: !GetAtt ApplyBucketNotificationFunction.Arn
       S3Bucket: !Ref 'ProcessingBucket'
-      #FunctionARN: !GetAtt JobCreationLambda.Arn
-      #NotificationId: S3ObjectCreatedEventProcessingBucket
       LambdaFunctionConfigurations:
       - Events: ["s3:ObjectCreated:Put"]
-        Id: S3ObjectCreatedEventProcessingBucket
+        Id: S3ObjectCreatedEventProcessingBucketCSV
         Filter:
           Key:
             FilterRules:
@@ -369,15 +364,8 @@ Resources:
               - Name: suffix
                 Value: .csv
         LambdaFunctionArn: !GetAtt JobCreationLambda.Arn
-  ApplyNotificationProcessingBucketA:
-    Type: Custom::ApplyNotification
-    Properties:
-      ServiceToken: !GetAtt ApplyBucketNotificationFunction.Arn
-      S3Bucket: !Ref 'ProcessingBucket'
-      LambdaFunctionConfigurations:
-      - Events: ["s3:ObjectCreated:Put"]
-        #FunctionARN: !GetAtt LoopLambda.Arn
-        Id: S3ObjectCreatedEventProcessingBucketA
+      - Events: [ "s3:ObjectCreated:Put" ]
+        Id: S3ObjectCreatedEventProcessingBucketManifest
         Filter:
           Key:
             FilterRules:
@@ -386,6 +374,24 @@ Resources:
               - Name: suffix
                 Value: .manifest
         LambdaFunctionArn: !GetAtt LoopLambda.Arn
+
+  #ApplyNotificationProcessingBucketA:
+  #  DependsOn: ApplyNotificationProcessingBucket
+  #  Type: Custom::ApplyNotification
+  #  Properties:
+  #    ServiceToken: !GetAtt ApplyBucketNotificationFunction.Arn
+  #    S3Bucket: !Ref 'ProcessingBucket'
+  #    LambdaFunctionConfigurations:
+   #   - Events: ["s3:ObjectCreated:Put"]
+  #      Id: S3ObjectCreatedEventProcessingBucketA
+  #      Filter:
+  #        Key:
+  #          FilterRules:
+  #            - Name: prefix
+  #              Value: output/
+   #           - Name: suffix
+  #              Value: .manifest
+  #     LambdaFunctionArn: !GetAtt LoopLambda.Arn
   DataEncryptionKey:
     Type: 'AWS::KMS::Key'
     Metadata:
@@ -550,42 +556,42 @@ Resources:
       Path: /
       ManagedPolicyArns:
         - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-  boto3layer:
+  Boto3layer:
     DependsOn: CopyZips
     Type: AWS::Lambda::LayerVersion
     Properties:
       Content:
         S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/boto3layer/lambda.zip'
-  mathliblayer:
+  Mathliblayer:
     DependsOn: CopyZips
     Type: AWS::Lambda::LayerVersion
     Properties:
       Content:
         S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/mathliblayer/lambda.zip'
-  numpylayer:
+  Numpylayer:
     DependsOn: CopyZips
     Type: AWS::Lambda::LayerVersion
     Properties:
       Content:
         S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/numpylayer/lambda.zip'
-  xlrdlayer:
+  Xlrdlayer:
     DependsOn: CopyZips
     Type: AWS::Lambda::LayerVersion
     Properties:
       Content:
         S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/xlrd/lambda.zip'
-  pandaslayer:
+  Pandaslayer:
     DependsOn: CopyZips
     Type: AWS::Lambda::LayerVersion
     Properties:
       Content:
         S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/pandaslayer/lambda.zip'
-  preprocesslayer:
+  Preprocesslayer:
     DependsOn: CopyZips
     Type: AWS::Lambda::LayerVersion
     Properties:
@@ -605,7 +611,7 @@ Resources:
       MemorySize: 512
       Runtime: python3.8
       Timeout: 900
-      Layers:  [!Ref numpylayer, !Ref pandaslayer, !Ref boto3layer]
+      Layers:  [!Ref Numpylayer, !Ref Pandaslayer, !Ref Boto3layer]
   KeepjobaliveLambda:
     DependsOn: CopyZips
     Type: AWS::Lambda::Function
@@ -619,7 +625,7 @@ Resources:
       MemorySize: 128
       Runtime: python3.8
       Timeout: 900
-      Layers: [!Ref pandaslayer, !Ref boto3layer]
+      Layers: [!Ref Pandaslayer, !Ref Boto3layer]
   KeepjobaliveLambdaSchedule:
     Type: AWS::Events::Rule
     Properties:
@@ -651,7 +657,7 @@ Resources:
       MemorySize: 512
       Runtime: python3.8
       Timeout: 900
-      Layers: [ !Ref pandaslayer, !Ref boto3layer ]
+      Layers: [ !Ref Pandaslayer, !Ref Boto3layer ]
   PreprocessLambda:
     DependsOn: CopyZips
     Type: AWS::Lambda::Function 
@@ -665,7 +671,7 @@ Resources:
       MemorySize: 2048
       Runtime: python3.8
       Timeout: 900
-      Layers: [ !Ref preprocesslayer , !Ref xlrdlayer]
+      Layers: [ !Ref Preprocesslayer , !Ref Xlrdlayer]
   SagemakerphcpostprocessLambda:
     DependsOn: CopyZips
     Type: AWS::Lambda::Function
@@ -679,7 +685,7 @@ Resources:
       MemorySize: 128
       Runtime: python3.8
       Timeout: 900
-      Layers: [ !Ref boto3layer ]
+      Layers: [ !Ref Boto3layer ]
   SagemakerphcpreprocessLambda:
     DependsOn: CopyZips
     Type: AWS::Lambda::Function
@@ -717,13 +723,13 @@ Outputs:
   LambdaZipsBucket:
     Value: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
   MatplotlibLayerName:
-    Value: !Ref mathliblayer
+    Value: !Ref Mathliblayer
   NumpyLayerName:
-    Value: !Ref numpylayer
+    Value: !Ref Numpylayer
   PandasLayerName:
-    Value: !Ref pandaslayer
+    Value: !Ref Pandaslayer
   PreProcessLayerName:
-    Value: !Ref preprocesslayer
+    Value: !Ref Preprocesslayer
   JobCreationLambdaName:
     Value: !Ref JobCreationLambda
   FeedbackLoopLambdaName:
@@ -735,7 +741,7 @@ Outputs:
   SageMakerPostprocessLambdaName:
     Value: !Ref SagemakerphcpostprocessLambda
   XLRDLayerName:
-    Value: !Ref xlrdlayer
+    Value: !Ref Xlrdlayer
   ApplyBucketNotificationFunctionARN:
     Value: !GetAtt ApplyBucketNotificationFunction.Arn
   JobCreationLambdaARN:
