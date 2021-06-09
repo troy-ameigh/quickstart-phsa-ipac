@@ -28,8 +28,6 @@ Metadata:
           - LambdaZipsBucketName
       - Label:
           default: Optional Configuration item
-        Parameters:
-          - KeyAdminGrpARN
     ParameterLabels:
       RepositoryName:
         default: "Which pre-existing CodeCommit repository this pipeline should monitor?"
@@ -53,8 +51,6 @@ Metadata:
         default: Landingzone bucket name
       ProcessingBucketName:
         default: Processing bucket name
-      KeyAdminGrpARN:
-        default: IAM group ARN that can manage KMS keys
 Parameters:
   RepositoryName:
     Type: String
