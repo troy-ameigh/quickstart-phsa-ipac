@@ -1,0 +1,880 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: PHC CI/CD (qs-1rndhj0aj)
+Metadata:
+  QuickStartDocumentation:
+    EntrypointName: "Parameters for deploying into a existing VPC"
+    Order: "2"
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Pipeline parameters
+        Parameters:
+          - RepositoryName
+          - RepositoryBranchName
+          - Suffix
+      - Label:
+          default: Deployment parameters
+        Parameters:
+          - ApplicationName
+          - Environment
+          - LandingBucketName
+          - ProcessingBucketName
+      - Label:
+          default: AWS Quick Start configuration
+        Parameters:
+          - QSS3BucketName
+          - QSS3KeyPrefix
+          - QSS3BucketRegion
+          - LambdaZipsBucketName
+      - Label:
+          default: Optional Configuration item
+        Parameters:
+          - KeyAdminGrpARN
+    ParameterLabels:
+      RepositoryName:
+        default: "Which pre-existing CodeCommit repository this pipeline should monitor?"
+      RepositoryBranchName:
+        default: "Which branch CodePipeline should monitor for new commits?"
+      ApplicationName:
+        default: "How should this application be called?"
+      Environment:
+        default: "What is the compute environment for this application, including environmental variables?"
+      Suffix:
+        default: "What is the naming suffix for this deployment?"
+      QSS3BucketName:
+        default: Quick Start S3 bucket name
+      QSS3KeyPrefix:
+        default: Quick Start S3 key prefix
+      QSS3BucketRegion:
+        default: Quick Start S3 bucket Region
+      LambdaZipsBucketName:
+        default: Lambda zips bucket name
+      LandingBucketName:
+        default: Landingzone bucket name
+      ProcessingBucketName:
+        default: Processing bucket name
+      KeyAdminGrpARN:
+        default: IAM group ARN that can manage KMS keys
+Parameters:
+  RepositoryName:
+    Type: String
+    Description: The CodeCommit repository name where the source code is located.
+    Default: phc-ipac-clabsi
+  RepositoryBranchName:
+    Type: String
+    Default: main
+    Description: Repository branch to use.
+  ApplicationName:
+    Type: String
+    Description: Application name.
+    Default: phc-ipac-clabsi
+  Environment:
+    Type: String
+    Description: Environment variables that are accessible from function code during execution.
+    AllowedValues:
+      - 'dev'
+      - 'stage'
+      - 'prod'
+    Default: 'dev'
+  Suffix:
+    Type: String
+    Description: Suffix value for the file that triggers pre-process lambda.
+    Default: '-7'
+  QSS3BucketName:
+    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
+    ConstraintDescription: Quick Start bucket name can include numbers, lowercase
+      letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
+      (-).
+    Default: aws-quickstart
+    Description: S3 bucket name for the Quick Start assets. This string can include
+      numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start
+      or end with a hyphen (-).
+    Type: String
+  QSS3KeyPrefix:
+    AllowedPattern: ^[0-9a-zA-Z-/.]*$
+    ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), periods (.) and forward slash (/).
+    Default: quickstart-phsa-ipac/
+    Description: S3 key prefix for the Quick Start assets. Quick Start key prefix
+      can include numbers, lowercase letters, uppercase letters, hyphens (-), periods (.) and
+      forward slash (/).
+    Type: String
+  QSS3BucketRegion:
+    Default: 'us-east-1'
+    Description: Region where the Quick Start S3 bucket (QSS3BucketName) is
+      hosted. When using your own bucket, you must specify this value.
+    Type: String
+  LambdaZipsBucketName:
+    Description: '[OPTIONAL] The name of the S3 bucket where the Lambda zip files should be placed. If you leave this parameter blank, an S3 bucket will be created.'
+    Type: String
+    Default: ''
+  LandingBucketName:
+    Type: String
+    Description: The name of the S3 bucket for the files landing zone. If you leave this parameter blank, an S3 bucket will be created.'
+    Default: ''
+  ProcessingBucketName:
+    Type: String
+    Description: Processing Bucket
+    Default: ''
+Conditions:
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
+Rules:
+  IPACQSRegions:
+    Assertions:
+      - AssertDescription: Your AWS Region does not yet support this Quick Start.
+        Assert:
+          'Fn::Contains':
+            - - us-east-1
+              - us-east-2
+              - us-west-1
+              - us-west-2
+              - ap-south-1
+              - ap-northeast-1
+              - ap-northeast-2
+              - ap-southeast-1
+              - ap-southeast-2
+              - ca-central-1
+              - eu-central-1
+              - ca-central-1
+              - eu-west-1
+              - eu-west-2
+              - eu-west-3
+              - eu-north-1
+              - sa-east-1
+            - !Ref 'AWS::Region'
+Resources:
+  FunctionsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/functions.template.yaml'
+        - S3Region: !If [ UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion ]
+          S3Bucket: !If [ UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName ]
+      Parameters:
+        QSS3BucketName: !Ref QSS3BucketName
+        QSS3KeyPrefix: !Ref QSS3KeyPrefix
+        DestinationBucket: !Ref LambdaZipsBucketName
+        LandingBucketName: !Ref LandingBucketName
+        ProcessingBucketName: !Ref ProcessingBucketName
+  ArtifactsEncryptionKey:
+    Type: 'AWS::KMS::Key'
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - EIAMPolicyWildcardResource
+            - EIAMPolicyActionWildcard
+          ignore_reasons:
+            EIAMPolicyWildcardResource: Resource '*' at lines 204 & 223, is conditional.
+            EIAMPolicyActionWildcard: This is based on AWS Documentation.
+    Properties:
+      Description: Symmetric CMK for enryption/decryption of Pipeline artifacts
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: Allow IAM User permissions to manage the key
+          Effect: Allow
+          Principal:
+            AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
+          Action: kms:*
+          Resource: '*'
+        - Sid: Allow administration of the key
+          Effect: Allow
+          Principal:
+            AWS:
+              - Fn::GetAtt: [ CodePipelineServiceRole, Arn ]
+              - Fn::GetAtt: [ CodeBuildServiceRole, Arn ]
+          Action:
+          - kms:Create*
+          - kms:Describe*
+          - kms:Enable*
+          - kms:List*
+          - kms:Put*
+          - kms:Update*
+          - kms:Revoke*
+          - kms:Disable*
+          - kms:Get*
+          - kms:Delete*
+          - kms:ScheduleKeyDeletion
+          - kms:CancelKeyDeletion
+          Resource: '*'
+          Condition:
+            StringEquals:
+              'kms:CallerAccount': !Ref 'AWS::AccountId'
+              'kms:ViaService': !Sub 'codepipeline.${AWS::Region}.amazonaws.com'
+        - Sid: Allow use of the key
+          Effect: Allow
+          Principal:
+            AWS:
+              - Fn::GetAtt: [ CodePipelineServiceRole, Arn ]
+              - Fn::GetAtt: [ CodeBuildServiceRole, Arn ]
+          Action:
+          - kms:DescribeKey
+          - kms:Encrypt
+          - kms:Decrypt
+          - kms:ReEncryptFrom
+          - kms:ReEncryptTo
+          - kms:GenerateDataKey
+          - kms:GenerateDataKeyWithoutPlaintext
+          Resource: "*"
+          Condition:
+            StringEquals:
+              'kms:CallerAccount': !Ref 'AWS::AccountId'
+              'kms:ViaService': !Sub 'codepipeline.${AWS::Region}.amazonaws.com'
+  ArtifactsStoreBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+              KMSMasterKeyID:
+                Ref: ArtifactsEncryptionKey
+      VersioningConfiguration:
+        Status: Enabled
+  LambdaS3AccessPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      Description: Allow S3 access for associated principals
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+          - 's3:GetObject'
+          - 's3:GetObjectVersion'
+          - 's3:PutObject'
+          - 's3:PutObjectVersion'
+          - 's3:DeleteObject'
+          - 's3:DeleteObjectVersion'
+          - 's3:ListBucket'
+          Resource:
+          - !GetAtt FunctionsStack.Outputs.ProcessingBucketARN
+          - Fn::Join: [ '', [ !GetAtt FunctionsStack.Outputs.ProcessingBucketARN, '/*' ]  ]
+        - Effect: Allow
+          Action:
+          - 's3:GetObject'
+          - 's3:GetObjectVersion'
+          - 's3:ListBucket'
+          Resource:
+          - !GetAtt FunctionsStack.Outputs.LandingBucketARN
+          - Fn::Join: [ '', [ !GetAtt FunctionsStack.Outputs.LandingBucketARN, '/*' ]  ]
+      Roles:
+      - !GetAtt FunctionsStack.Outputs.PreProcessLambdaExecutionRole
+      - !GetAtt FunctionsStack.Outputs.JobCreationLambdaExecutionRole
+      - !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaExecutionRole
+      - !Ref CodeBuildServiceRole
+  EventBridgeEventRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: EventBridgeEventPipelineExecution
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'codepipeline:StartPipelineExecution'
+                Resource:
+                  !Sub
+                    - "arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipeline}"
+                    - CodePipeline: !Ref CodePipeline
+  CodePipelineServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      Description:
+        Fn::Join: [ '', [ 'AWS CodePipeline Service Role for', Ref: ApplicationName , Ref: Suffix] ]
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AWSCodePipeline_FullAccess'
+      Policies:
+        - PolicyName: CodePipelineRepositoryAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - codecommit:GetBranch
+                  - codecommit:GetCommit
+                  - codecommit:UploadArchive
+                  - codecommit:GetUploadArchiveStatus
+                Resource:
+                  !Sub
+                    - "arn:${AWS::Partition}:codecommit:${AWS::Region}:${AWS::AccountId}:${RepositoryName}"
+                    - RepositoryName: !Ref RepositoryName
+        - PolicyName: CodePipelineBuildStage
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - codebuild:StartBuild
+                  - codebuild:BatchGetBuilds
+                Resource:
+                  !Sub
+                    - "arn:${AWS::Partition}:codebuild:${AWS::Region}:${AWS::AccountId}:project/${CodeBuildProject}"
+                    - CodeBuildProject: !Ref CodeBuildProject
+        - PolicyName: CodePipelineArtifactsStoreObjectAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:AbortMultipartUpload
+                  - s3:BypassGovernanceRetention
+                  - s3:CreateAccessPoint
+                  - s3:CreateAccessPointForObjectLambda
+                  - s3:CreateBucket
+                  - s3:CreateJob
+                  - s3:DeleteAccessPoint
+                  - s3:DeleteAccessPointForObjectLambda
+                  - s3:DeleteAccessPointPolicy
+                  - s3:DeleteAccessPointPolicyForObjectLambda
+                  - s3:DeleteBucket
+                  - s3:DeleteBucketOwnershipControls
+                  - s3:DeleteBucketPolicy
+                  - s3:DeleteBucketWebsite
+                  - s3:DeleteJobTagging
+                  - s3:DeleteObject
+                  - s3:DeleteObjectTagging
+                  - s3:DeleteObjectVersion
+                  - s3:DeleteObjectVersionTagging
+                  - s3:DeleteStorageLensConfiguration
+                  - s3:DeleteStorageLensConfigurationTagging
+                  - s3:DescribeJob
+                  - s3:GetAccelerateConfiguration
+                  - s3:GetAccessPoint
+                  - s3:GetAccessPointConfigurationForObjectLambda
+                  - s3:GetAccessPointForObjectLambda
+                  - s3:GetAccessPointPolicy
+                  - s3:GetAccessPointPolicyForObjectLambda
+                  - s3:GetAccessPointPolicyStatus
+                  - s3:GetAccessPointPolicyStatusForObjectLambda
+                  - s3:GetAccountPublicAccessBlock
+                  - s3:GetAnalyticsConfiguration
+                  - s3:GetBucketAcl
+                  - s3:GetBucketCORS
+                  - s3:GetBucketLocation
+                  - s3:GetBucketLogging
+                  - s3:GetBucketNotification
+                  - s3:GetBucketObjectLockConfiguration
+                  - s3:GetBucketOwnershipControls
+                  - s3:GetBucketPolicy
+                  - s3:GetBucketPolicyStatus
+                  - s3:GetBucketPublicAccessBlock
+                  - s3:GetBucketRequestPayment
+                  - s3:GetBucketTagging
+                  - s3:GetBucketVersioning
+                  - s3:GetBucketWebsite
+                  - s3:GetEncryptionConfiguration
+                  - s3:GetIntelligentTieringConfiguration
+                  - s3:GetInventoryConfiguration
+                  - s3:GetJobTagging
+                  - s3:GetLifecycleConfiguration
+                  - s3:GetMetricsConfiguration
+                  - s3:GetObject
+                  - s3:GetObjectAcl
+                  - s3:GetObjectLegalHold
+                  - s3:GetObjectRetention
+                  - s3:GetObjectTagging
+                  - s3:GetObjectTorrent
+                  - s3:GetObjectVersion
+                  - s3:GetObjectVersionAcl
+                  - s3:GetObjectVersionForReplication
+                  - s3:GetObjectVersionTagging
+                  - s3:GetObjectVersionTorrent
+                  - s3:GetReplicationConfiguration
+                  - s3:GetStorageLensConfiguration
+                  - s3:GetStorageLensConfigurationTagging
+                  - s3:GetStorageLensDashboard
+                  - s3:ListAccessPoints
+                  - s3:ListAccessPointsForObjectLambda
+                  - s3:ListAllMyBuckets
+                  - s3:ListBucket
+                  - s3:ListBucketMultipartUploads
+                  - s3:ListBucketVersions
+                  - s3:ListJobs
+                  - s3:ListMultipartUploadParts
+                  - s3:ListStorageLensConfigurations
+                  - s3:ObjectOwnerOverrideToBucketOwner
+                  - s3:PutAccelerateConfiguration
+                  - s3:PutAccessPointConfigurationForObjectLambda
+                  - s3:PutAccessPointPolicy
+                  - s3:PutAccessPointPolicyForObjectLambda
+                  - s3:PutAccountPublicAccessBlock
+                  - s3:PutAnalyticsConfiguration
+                  - s3:PutBucketAcl
+                  - s3:PutBucketCORS
+                  - s3:PutBucketLogging
+                  - s3:PutBucketNotification
+                  - s3:PutBucketObjectLockConfiguration
+                  - s3:PutBucketOwnershipControls
+                  - s3:PutBucketPolicy
+                  - s3:PutBucketPublicAccessBlock
+                  - s3:PutBucketRequestPayment
+                  - s3:PutBucketTagging
+                  - s3:PutBucketVersioning
+                  - s3:PutBucketWebsite
+                  - s3:PutEncryptionConfiguration
+                  - s3:PutIntelligentTieringConfiguration
+                  - s3:PutInventoryConfiguration
+                  - s3:PutJobTagging
+                  - s3:PutLifecycleConfiguration
+                  - s3:PutMetricsConfiguration
+                  - s3:PutObject
+                  - s3:PutObjectAcl
+                  - s3:PutObjectLegalHold
+                  - s3:PutObjectRetention
+                  - s3:PutObjectTagging
+                  - s3:PutObjectVersionAcl
+                  - s3:PutObjectVersionTagging
+                  - s3:PutReplicationConfiguration
+                  - s3:PutStorageLensConfiguration
+                  - s3:PutStorageLensConfigurationTagging
+                  - s3:ReplicateDelete
+                  - s3:ReplicateObject
+                  - s3:ReplicateTags
+                  - s3:RestoreObject
+                  - s3:UpdateJobPriority
+                  - s3:UpdateJobStatus
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:*"
+  CodeBuildServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - 'codebuild.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: CodeBuildServiceRolePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: 
+                  !Sub 
+                    - "arn:${AWS::Partition}:s3:::${Bucket}/*"
+                    - Bucket: !Ref QSS3BucketName
+              - Effect: Allow
+                Action:
+                  - 'codecommit:GitPull'
+                Resource: 
+                  !Sub 
+                    - "arn:${AWS::Partition}:s3:::${Bucket}/*"
+                    - Bucket: !Ref QSS3BucketName
+              - Effect: Allow
+                Action:
+                  - 's3:GetObject'
+                  - 's3:GetObjectVersion'
+                Resource: 
+                  !Sub 
+                    - "arn:${AWS::Partition}:s3:::${Bucket}/*"
+                    - Bucket: !Ref QSS3BucketName
+              - Effect: Allow
+                Action:
+                  - 's3:PutObject'
+                Resource: 
+                  !Sub 
+                    - "arn:${AWS::Partition}:s3:::${Bucket}/*"
+                    - Bucket: !Ref QSS3BucketName
+              - Effect: Allow
+                Action:
+                  - 's3:GetBucketAcl'
+                  - 's3:GetBucketLocation'
+                Resource: 
+                  !Sub 
+                    - "arn:${AWS::Partition}:s3:::${Bucket}/*"
+                    - Bucket: !Ref QSS3BucketName
+              - Effect: Allow
+                Action:
+                  - lambda:CreateFunction
+                  - lambda:UpdateFunctionCode
+                  - lambda:AddPermission
+                  - lambda:RemovePermission
+                  - lambda:GetFunction
+                  - lambda:UpdateFunctionConfiguration
+                Resource:
+                  - !Sub
+                      - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}'
+                      - A: !GetAtt FunctionsStack.Outputs.JobCreationLambdaName
+                        B: !Ref Suffix
+                  - !Sub
+                      - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}'
+                      - A: !GetAtt FunctionsStack.Outputs.JobCreationLambdaName
+                        B: !Ref Suffix
+                  - !Sub
+                    - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}'
+                    - A: !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaName
+                      B: !Ref Suffix
+                  - !Sub
+                      - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}'
+                      - A: !GetAtt FunctionsStack.Outputs.PreprocessLambdaName
+                        B: !Ref Suffix
+                  - !Sub
+                    - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}'
+                    - A: !GetAtt FunctionsStack.Outputs.SageMakerPreprocessLambdaName
+                      B: !Ref Suffix
+                  - !Sub
+                    - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}'
+                    - A: !GetAtt FunctionsStack.Outputs.SageMakerPostprocessLambdaName
+                      B: !Ref Suffix
+              - Effect: Allow
+                Action:
+                  - lambda:PublishLayerVersion
+                  - lambda:ListLayerVersions
+                Resource:
+                  - !Sub
+                    - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}'
+                    - A: !GetAtt FunctionsStack.Outputs.MatplotlibLayerName
+                      B: !Ref Suffix
+                  - !Sub
+                    - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}'
+                    - A: !GetAtt FunctionsStack.Outputs.NumpyLayerName
+                      B: !Ref Suffix
+                  - !Sub
+                    - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}'
+                    - A: !GetAtt FunctionsStack.Outputs.PandasLayerName
+                      B: !Ref Suffix
+                  - !Sub
+                    - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}'
+                    - A: !GetAtt FunctionsStack.Outputs.PreProcessLayerName
+                      B: !Ref Suffix
+                  - !Sub
+                    - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}'
+                    - A: !GetAtt FunctionsStack.Outputs.XLRDLayerName
+                      B: !Ref Suffix
+              - Effect: Allow
+                Action:
+                  - lambda:GetLayerVersion
+                Resource:
+                  - !Sub
+                    - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}:*'
+                    - A: !GetAtt FunctionsStack.Outputs.MatplotlibLayerName
+                      B: !Ref Suffix
+                  - !Sub
+                    - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}:*'
+                    - A: !GetAtt FunctionsStack.Outputs.NumpyLayerName
+                      B: !Ref Suffix
+                  - !Sub
+                    - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}:*'
+                    - A: !GetAtt FunctionsStack.Outputs.PandasLayerName
+                      B: !Ref Suffix
+                  - !Sub
+                    - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}:*'
+                    - A: !GetAtt FunctionsStack.Outputs.XLRDLayerName
+                      B: !Ref Suffix
+                  - !Sub
+                    - 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${A}:${B}:*'
+                    - A: !GetAtt FunctionsStack.Outputs.PreProcessLayerName
+                      B: !Ref Suffix
+                  - Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:LambdaInsightsExtension', Ref: Suffix, ':', '*' ]  ]
+                  - Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:AWSLambda-Python36-SciPy1x', Ref: Suffix, ':', '*' ]  ]
+                  - Fn::Join: [ '', [ !Sub 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:AWSLambda-Python37-SciPy1x', Ref: Suffix, ':', '*' ]  ]
+              - Effect: Allow
+                Action:
+                  - 's3:PutBucketNotificationConfiguration'
+                  - 's3:PutBucketNotification'
+                Resource:
+                  - !GetAtt FunctionsStack.Outputs.LandingBucketARN
+                  - !GetAtt FunctionsStack.Outputs.ProcessingBucketARN
+              - Effect: Allow
+                Action:
+                  - 'iam:PassRole'
+                Resource:
+                  - !GetAtt FunctionsStack.Outputs.JobCreationLambdaExecutionRoleARN
+                  - !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaExecutionRoleARN
+                  - !GetAtt FunctionsStack.Outputs.PreProcessLambdaExecutionRoleARN
+                  - !GetAtt FunctionsStack.Outputs.SageMakerPreprocessLambdaExecutionRoleARN
+                  - !GetAtt FunctionsStack.Outputs.SageMakerPostprocessLambdaExecutionRoleARN
+  CodeDeployServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - 'codedeploy.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda'
+  IPACUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      UserPoolName: SageMakerIPACAPIUsers
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireNumbers: true
+          RequireSymbols: true
+  UserPoolTokenClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthScopes:
+        - aws.cognito.signin.user.admin
+        - email
+        - openid
+      CallbackURLs:
+        - "https://github.com/aws-quickstart/quickstart-phsa-ipac/blob/main/README.md"
+      UserPoolId: !Ref IPACUserPool
+      GenerateSecret: true
+      SupportedIdentityProviders:
+        - COGNITO
+      ExplicitAuthFlows:
+        - USER_PASSWORD_AUTH
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Select [2, !Split [ /, !Ref AWS::StackId ]]
+      UserPoolId: !Ref IPACUserPool
+  UserPoolGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      UserPoolId: !Ref IPACUserPool
+  IPACWorkteam:
+    Type: AWS::SageMaker::Workteam
+    Properties:
+      Description: This is the work team for Sagemaker for the IPAC work flow.
+      MemberDefinitions:
+        - CognitoMemberDefinition:
+            CognitoClientId: !Ref UserPoolTokenClient
+            CognitoUserGroup: !Ref UserPoolGroup
+            CognitoUserPool: !Ref IPACUserPool
+      WorkteamName: !Join [ '', [ 'IPACWorkteam', '-', !Select [2, !Split [ /, !Ref AWS::StackId ]]]]
+  SageMakerGroundTruthExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - sagemaker.amazonaws.com
+          Action:
+            - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSageMakerFullAccess'
+  CodeBuildProject:
+    Type: 'AWS::CodeBuild::Project'
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: GROUNDTRUTH_ROLE
+            Value:
+              Fn::GetAtt: [ SageMakerGroundTruthExecutionRole, Arn ]
+          - Name: S3_raw
+            Value: !GetAtt FunctionsStack.Outputs.LandingBucketARN
+          - Name: patient_bucket
+            Value: !GetAtt FunctionsStack.Outputs.ProcessingBucketARN
+          - Name: patient_folder
+            Value: "source-csv"
+          - Name: REGION
+            Value: !Ref 'AWS::Region'
+          - Name: ProcessingBucketName
+            Value: !GetAtt FunctionsStack.Outputs.ProcessingBucket
+          - Name: ProcessingBucketArn
+            Value: !GetAtt FunctionsStack.Outputs.ProcessingBucketARN
+          - Name: LandingBucketName
+            Value: !GetAtt FunctionsStack.Outputs.LandingBucket
+          - Name: LandingBucketArn
+            Value: !GetAtt FunctionsStack.Outputs.LandingBucketARN
+          - Name: PREPROCESS_ROLE
+            Value: !GetAtt FunctionsStack.Outputs.PreProcessLambdaExecutionRoleARN
+          - Name: JOB_CREATION_ROLE
+            Value: !GetAtt FunctionsStack.Outputs.JobCreationLambdaExecutionRoleARN
+          - Name: FEEDBACK_LOOP_ROLE
+            Value: !GetAtt FunctionsStack.Outputs.FeedbackLoopLambdaExecutionRoleARN
+          - Name: SAGEMAKER_PREPROCESS_LOOP_ROLE
+            Value: !GetAtt FunctionsStack.Outputs.SageMakerPreprocessLambdaExecutionRoleARN
+          - Name: SAGEMAKER_POSTPROCESS_LOOP_ROLE
+            Value: !GetAtt FunctionsStack.Outputs.SageMakerPostprocessLambdaExecutionRoleARN
+          - Name: JOB_TASK_DESCRIPTION
+            Value: Classify as cases, no case, or not sure
+          - Name: MAX_CONCURRENT_TASK_COUNT
+            Value: "200"
+          - Name: NUMBER_OF_HUMAN_WORKERS_PER_DATA_OBJECT
+            Value: "1"
+          - Name: PRIVATE_WORK_TEAM_ARN
+            Value: !Ref IPACWorkteam
+          - Name: PRODUCTION
+            Value: !GetAtt FunctionsStack.Outputs.ProcessingBucket
+          - Name: TASK_AVAILABILITY_LIFE_TIME_IN_SECONDS
+            Value: "604800"
+          - Name: TASK_TIME_LIMIT_IN_SECONDS
+            Value: "3600"
+          - Name: TEMPLATE_PATH
+            Value: !Sub
+                     - "${PBucket}/ui-template/instructions_v21_QS.template"
+                     - PBucket: !GetAtt FunctionsStack.Outputs.ProcessingBucket
+          - Name: FEEDBACK_FOLDER
+            Value: source-csv
+          - Name: REPORTING_BUCKET
+            Value: !GetAtt FunctionsStack.Outputs.ProcessingBucket
+          - Name: REPORTING_FOLDER
+            Value: for_reporting
+          - Name: DeploymentTargetAccount
+            Value: !Ref 'AWS::AccountId'
+          - Name: SUFFIX
+            Value: !Ref Suffix
+          - Name: FEEDBACK_BUCKET
+            Value: !GetAtt FunctionsStack.Outputs.ProcessingBucket
+      ServiceRole:
+        Ref: CodeBuildServiceRole
+      Source:
+        Type: CODEPIPELINE
+  CodeDeployDeploymentGroup:
+    Type: 'AWS::CodeDeploy::DeploymentGroup'
+    Properties:
+      ApplicationName: !Ref CodeDeployApplication
+      DeploymentStyle:
+        DeploymentOption: WITH_TRAFFIC_CONTROL
+        DeploymentType: BLUE_GREEN
+      ServiceRoleArn:
+        Fn::GetAtt: [ CodeDeployServiceRole, Arn ]
+  CodeDeployApplication:
+    Type: 'AWS::CodeDeploy::Application'
+    Properties:
+      ComputePlatform: Lambda
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      RoleArn:
+        Fn::GetAtt: [ CodePipelineServiceRole, Arn ]
+      Stages:
+        - Name: Source
+          Actions:
+            - OutputArtifacts:
+                - Name: SourceArtifact
+              Name: RetrieveSourceCode
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Version: '1'
+                Provider: CodeCommit
+              RunOrder: 1
+              Configuration:
+                RepositoryName:
+                  Ref: RepositoryName
+                BranchName:
+                  Ref: RepositoryBranchName
+                PollForSourceChanges: False
+                OutputArtifactFormat: CODE_ZIP
+        - Name: Build
+          Actions:
+            - InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts:
+                - Name: preprocesslayer
+                - Name: job_creation
+                - Name: loop
+              Name: BuildApplication
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: '1'
+                Provider: CodeBuild
+              RunOrder: 1
+              Configuration:
+                ProjectName:
+                  Ref: CodeBuildProject
+      ArtifactStore:
+        Type: S3
+        Location:
+          Ref: ArtifactsStoreBucket
+        EncryptionKey:
+          Id:
+            Ref: ArtifactsEncryptionKey
+          Type: KMS
+      Tags:
+        - Key: Project
+          Value: PHC
+        - Key: Customer
+          Value: Providence Health Care
+        - Key: Environment
+          Value:
+            Ref: Environment
+  RunPipelineEventRule:
+    Type: 'AWS::Events::Rule'
+    Properties:
+      Description: 'Run CodePipeline when a update is pushed to the repository'
+      EventBusName: 'default'
+      EventPattern:
+        source:
+          - aws.codecommit
+        detail-type:
+          - 'CodeCommit Repository State is updated'
+        resources:
+          - !Sub 'arn:${AWS::Partition}:codecommit:${AWS::Region}:${AWS::AccountId}:${RepositoryName}*'
+        detail:
+          event:
+            - referenceCreated
+            - referenceUpdated
+          referenceType:
+            - branch
+          referenceName:
+            - Ref: RepositoryBranchName
+      Name:
+        Fn::Sub: "${RepositoryName}-${RepositoryBranchName}-${Suffix}-updated"
+      State: ENABLED
+      Targets:
+        - Arn:
+            !Sub
+              - "arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipeline}"
+              - CodePipeline: !Ref CodePipeline
+          RoleArn:
+            Fn::GetAtt: [ EventBridgeEventRole, Arn ]
+          Id:
+            Fn::Sub: "${RepositoryName}-${RepositoryBranchName}"
+Outputs:
+  ArtifactsStoreBucket:
+    Description: This is the Bucket for the Artifact Store
+    Value: !Ref ArtifactsStoreBucket
