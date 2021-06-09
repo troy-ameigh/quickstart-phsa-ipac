@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Deploys Lambda functions required for the PHSA IPAC Quick Start (qs-1romd7rj8)
 Metadata:
   QuickStartDocumentation:
-    Order: "3"
+    Order: "2"
   QSLint:
     Exclusions: [ W9001, W9002, W9003, W9004, W9006, W3005 ]
 Parameters:
