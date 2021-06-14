@@ -111,6 +111,7 @@ Resources:
         - functions/packages/numpylayer/lambda.zip
         - functions/packages/pandaslayer/lambda.zip
         - functions/packages/preprocesslayer/lambda.zip
+        - functions/packages/xlrdlayer/lambda.zip
         - functions/packages/xlrd/lambda.zip
   CopyZipsFunction:
     Type: AWS::Lambda::Function
@@ -374,24 +375,6 @@ Resources:
               - Name: suffix
                 Value: .manifest
         LambdaFunctionArn: !GetAtt LoopLambda.Arn
-
-  #ApplyNotificationProcessingBucketA:
-  #  DependsOn: ApplyNotificationProcessingBucket
-  #  Type: Custom::ApplyNotification
-  #  Properties:
-  #    ServiceToken: !GetAtt ApplyBucketNotificationFunction.Arn
-  #    S3Bucket: !Ref 'ProcessingBucket'
-  #    LambdaFunctionConfigurations:
-   #   - Events: ["s3:ObjectCreated:Put"]
-  #      Id: S3ObjectCreatedEventProcessingBucketA
-  #      Filter:
-  #        Key:
-  #          FilterRules:
-  #            - Name: prefix
-  #              Value: output/
-   #           - Name: suffix
-  #              Value: .manifest
-  #     LambdaFunctionArn: !GetAtt LoopLambda.Arn
   DataEncryptionKey:
     Type: 'AWS::KMS::Key'
     Metadata:
@@ -583,7 +566,7 @@ Resources:
     Properties:
       Content:
         S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
-        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/xlrd/lambda.zip'
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/xlrdlayer/lambda.zip'
   Pandaslayer:
     DependsOn: CopyZips
     Type: AWS::Lambda::LayerVersion
@@ -660,7 +643,7 @@ Resources:
       Layers: [ !Ref Pandaslayer, !Ref Boto3layer ]
   PreprocessLambda:
     DependsOn: CopyZips
-    Type: AWS::Lambda::Function 
+    Type: AWS::Lambda::Function
     Properties:
       Code:
         S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
@@ -671,7 +654,8 @@ Resources:
       MemorySize: 2048
       Runtime: python3.8
       Timeout: 900
-      Layers: [ !Ref Preprocesslayer , !Ref Xlrdlayer]
+      #Layers: [ !Ref Preprocesslayer , !Ref Xlrdlayer]
+      Layers: [ !Ref Pandaslayer, !Ref Mathliblayer, !Ref Xlrdlayer ]
   SagemakerphcpostprocessLambda:
     DependsOn: CopyZips
     Type: AWS::Lambda::Function
