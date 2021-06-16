@@ -1,0 +1,35 @@
+
+.Pipeline parameters
+[width="100%",cols="16%,11%,73%",options="header",]
+|===
+|Parameter label (name) |Default value|Description|Which pre-existing CodeCommit repository this pipeline should monitor?
+(`RepositoryName`)|`phc-ipac-clabsi`|The CodeCommit repository name where the source code is located.|Which branch CodePipeline should monitor for new commits?
+(`RepositoryBranchName`)|`main`|Repository branch to use.|What is the naming suffix for this deployment?
+(`Suffix`)|`-7`|Suffix value for the file that triggers pre-process lambda.
+|===
+.Deployment parameters
+[width="100%",cols="16%,11%,73%",options="header",]
+|===
+|Parameter label (name) |Default value|Description|How should this application be called?
+(`ApplicationName`)|`phc-ipac-clabsi`|Application name.|What is the compute environment for this application, including environmental variables?
+(`Environment`)|`dev`|Environment variables that are accessible from function code during execution.|Landingzone bucket name
+(`LandingBucketName`)|`**__Blank string__**`|The name of the S3 bucket for the files landing zone. If you leave this parameter blank, an S3 bucket will be created.'|Processing bucket name
+(`ProcessingBucketName`)|`**__Blank string__**`|Processing Bucket
+|===
+.AWS Quick Start configuration
+[width="100%",cols="16%,11%,73%",options="header",]
+|===
+|Parameter label (name) |Default value|Description|Quick Start S3 bucket name
+(`QSS3BucketName`)|`aws-quickstart`|S3 bucket name for the Quick Start assets. This string can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).|Quick Start S3 key prefix
+(`QSS3KeyPrefix`)|`quickstart-phsa-ipac/`|S3 key prefix for the Quick Start assets. Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), periods (.) and forward slash (/).|Quick Start S3 bucket Region
+(`QSS3BucketRegion`)|`us-east-1`|Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value.|Lambda zips bucket name
+(`LambdaZipsBucketName`)|`**__Blank string__**`|[OPTIONAL] The name of the S3 bucket where the Lambda zip files should be placed. If you leave this parameter blank, an S3 bucket will be created.
+|===
+.Optional Cognito configurations
+[width="100%",cols="16%,11%,73%",options="header",]
+|===
+|Parameter label (name) |Default value|Description|Cognito User Pool
+(`CognitoUserPool`)|`**__Blank string__**`|[Optional]Cognito User pool to use with Sagemaker Workteams. If one is not provided this will be created for you.|Cognito Client Id
+(`CognitoClientId`)|`**__Blank string__**`|[Optional]Cognito Client ID to use with Sagemaker Workteams. If one is not provided this will be created for you.|Cognito User Group
+(`CognitoUserGroup`)|`**__Blank string__**`|[Optional]Cognito User Group to use with Sagemaker Workteams. If one is not provided this will be created for you.
+|===

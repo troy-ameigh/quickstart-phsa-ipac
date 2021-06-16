@@ -2,8 +2,6 @@
 // Briefly describe the software. Use consistent and clear branding. 
 // Include the benefits of using the software on AWS, and provide details on usage scenarios.
 
-<Describe how the software works on AWS.>
-
 == *Background*
 A central line-associated bloodstream infection (CLABSI) is a serious infection that occurs when germs enter the bloodstream through a catheter (tube) that healthcare providers often place in a large vein in the neck, chest, or groin to give medication or fluids or to collect blood for medical tests.
 
@@ -29,7 +27,7 @@ The application requires Excel file as an input with two sheets. +
 The application consists of multiple processing AWS lambda functions that process the input information and prepare the data for the manual review process, as well as post review processing steps. All data in between processing steps are stored as S3 objects. +
 
 .IPAC-CLABSI architecture diagram
-image::./IPAC_architecture_diagram_v4.png[]
+image::../images/IPAC_architecture_diagram_v4.png[]
 
 #### User interface
 The application utilizes AWS SageMaker Ground Truth as a user interface. A single Ground Truth labeling / reviewing job provides all information about a patient disregard of having one or multiple CLABSI events. The decision is done on the patient level.
@@ -39,6 +37,6 @@ The application accumulates all decision information from the reviewer team and 
 
 ### Decision process
 .IPAC-CLABSI case review process
-image::ipac_clabsi_decison_process.png[Decision process]
+image::../images/ipac_clabsi_decison_process.png[Decision process]
 
 

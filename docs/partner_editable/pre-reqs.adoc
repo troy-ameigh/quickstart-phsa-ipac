@@ -1,5 +1,6 @@
+//TODO: Add in the steps for creating the user pool and the workload labling
 // If no preperation is required, remove all content from here
-==== required data schema: 
+= Required data schema:
 
 We expect an Excel file with 2 sheets in the Landing-Zone bucket to start the process:
 
@@ -60,24 +61,24 @@ Field marked in *bold* are mandatory, the rest of the fields are recommended, bu
 -  *last_activity_end_dt_tm* (Central line removal date)
 
 
-=== The second sheet
+== The second sheet
  
-==== Int64 fields
+=== Int64 fields
 -  *MRN* (Medical Record number)
 -  *result_value* (Temperature reading value)
 
-==== DateTime Columns (YYYY/MM/DD/)
+=== DateTime Columns (YYYY/MM/DD/)
 -  *event_end_dt_tm* (Temperature reading date and time information)
 
 
-==== Prepare your AWS account
+=== Prepare your AWS account
 
 _Describe any setup required in the AWS account prior to template launch_
 
-==== Prepare your {partner-company-name} account
+=== Prepare your {partner-company-name} account
 
 _Describe any setup required in the partner portal/account prior to template launch_
 
-==== Prepare for the deployment
+=== Prepare for the deployment
 
 _Describe any preparation required to complete the product build, such as obtaining licenses or placing files in S3_

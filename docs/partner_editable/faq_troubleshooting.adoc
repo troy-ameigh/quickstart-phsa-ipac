@@ -23,7 +23,7 @@ For additional information, see https://docs.aws.amazon.com/AWSCloudFormation/la
 
 Reasons for failure could be due to input file not having the correct column names, and data, or date format. 
 
-We expect an excell file with 2 sheets in the Landing-Zone bucket to start the process:
+We expect an excell file with 3 sheets in the Landing-Zone bucket to start the process:
 
 *.* The first sheet need these column names and their expected datatype.
 
@@ -57,9 +57,7 @@ String:
 -  med_service_desc_src_at_collection
 -  nursing_unit_desc_at_collection
 -  nursing_unit_short_desc_at_collection
--  organism_1_desc_src
--  organism_2_desc_src
--  organism_3_desc_src
+-  organism
 -  result_interpretation_desc_src
 -  specimen_type_desc_src
 -  doc_set_name_result
@@ -85,8 +83,37 @@ DateTime Columns (YYYY/MM/DD/) :
 *.* The second sheet should have these columns: 
  
 int64: 
--  MRN 
--  result_value
+-  encntr_num
+-  mrn
+-  encntr_id
+-  result_val
+str:
 
-DateTime Columns (YYYY/MM/DD/) : 
+-  accession_nbr
+-  collection_dt_tm
 -  event_end_dt_tm
+
+*.* The third sheet should have these columns:
+
+int64:
+
+-  encntr_num
+-  encntr_id
+-  mrn
+str:
+
+-  accession_nbr
+-  organism_desc_src
+-  event_end_dt_tm
+
+*.* The third sheet should have these columns:
+
+int64:
+
+-  encntr_num
+-  encntr_id
+-  mrn
+str:
+
+-  accession_nbr
+-  organism_desc_src
