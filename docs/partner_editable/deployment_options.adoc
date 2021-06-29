@@ -1,17 +1,9 @@
 // Edit this placeholder text to accurately describe your architecture.
 
-This Quick Start provides two deployment options:
+This Quick Start provides the following deployment option:
 
 *  Deploy {partner-product-short-name} using CloudFormation consule:
--     Upload the pipline.yaml file to Cloudformation service on AWS, and fill in the required paramters per files/paramters.json 
-
-
-*  Deploy {partner-product-short-name} using AWS CLI:
--       modify the parameters file given in files/paramters.json with your account information
--       Use the following AWS CLI command:
-
-
-    $ aws cloudformation create-stack --stack-name <your stackname> --template-body <yammel file path> --parameters <parameters.json path> --capabilities CAPABILITY_IAM --region ca-central-1 
+-     Upload the pipline.yaml file to Cloudformation service on AWS, and fill in the required paramters per files/paramters.json
 
 
 
