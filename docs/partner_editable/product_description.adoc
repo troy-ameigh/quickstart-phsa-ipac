@@ -3,7 +3,7 @@
 // Include the benefits of using the software on AWS, and provide details on usage scenarios.
 
 == *Background*
-A central line-associated bloodstream infection (CLABSI) is a serious infection that occurs when germs enter the bloodstream through a catheter (tube) that healthcare providers often place in a large vein in the neck, chest, or groin to give medication or fluids or to collect blood for medical tests.
+A central line-associated bloodstream infection (CLABSI) is a serious infection that occurs when germs enter the bloodstream through a catheter.
 
 Because CLABSI can be prevented through proper insertion techniques and management of the central line, surveillance systems are crucial in any inpatient location where denominator data can be collected, which can include
 critical/intensive care units (ICU), specialty care areas (SCA), neonatal units including neonatal intensive care units (NICUs), step down units, wards, and long term care units.
@@ -12,7 +12,7 @@ Monitoring CLABSI levels and identifying individual cases, associated nursing un
 
 ## *Software*
 
-Our application provides an interface for Infection Control Practitioners (ICPs), Physicians and Epidemiologists to review potential CLABSI cases and classify the information. It is a requirement that each patient undergoes at least two round of reviews, one from ICPs and one from the Physician group.
+This Quick Start deploys an interface for infection control practitioners (ICPs), physicians, and epidemiologists to review potential CLABSI cases and classify the information. It is a requirement that each patient undergoes at least two round of reviews, one from ICP and one from the Physician group.
 
 ### Components
 
