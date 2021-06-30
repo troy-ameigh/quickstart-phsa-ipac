@@ -14,29 +14,20 @@ Monitoring CLABSI levels and identifying individual cases, associated nursing un
 
 This Quick Start deploys an interface for infection control practitioners (ICPs), physicians, and epidemiologists to review potential CLABSI cases and classify the information. It is a requirement that each patient undergoes at least two round of reviews, one from ICP and one from the Physician group.
 
-### Components
 
-#### Input information
-Bulk patient information is required on potential CLABSI cases for a reporting period. A filter for patient who underwent *central line insertion* and developed a *blood stream infection* is usually necessary to reduce the number of patient record that needs review.
 
-The application requires Excel file as an input with two sheets. +
-1) 1st sheet: Patient information. Each record corresponds to a positive blood collection event. +
-2) 2nd sheet: Body temperature information. Depending on the pathogen, blood stream infections often associated with fever. Each record of this sheet represents a time point when temperature reading was done. +
 
-#### Pipeline
-The application consists of multiple processing AWS lambda functions that process the input information and prepare the data for the manual review process, as well as post review processing steps. All data in between processing steps are stored as S3 objects. +
 
-.IPAC-CLABSI architecture diagram
-image::../images/IPAC_architecture_diagram_v4.png[]
+
+### Decision process
+.IPAC-CLABSI case review process
+image::../images/ipac_clabsi_decison_process.png[Decision process]
+
+This Quick Start deploys Providence Health Care Infection Prevention and Control (IPAC) for central line-associated bloodstream infection (CLABSI) on the Amazon Web Services (AWS) Cloud. The deployment retrieves bulk patient data in Microsoft Excel format from an on-premises source. AWS Lambda functions transform data into individual infection cases and  display these to reviewers using Amazon SageMaker Ground Truth. Infection control practitioners review cases and manually label those that meet clinical criteria as confirmed CLASBI infections.
+
 
 #### User interface
 The application utilizes AWS SageMaker Ground Truth as a user interface. A single Ground Truth labeling / reviewing job provides all information about a patient disregard of having one or multiple CLABSI events. The decision is done on the patient level.
 
 #### Result
 The application accumulates all decision information from the reviewer team and genarates and aggregated data file. This file contains all input data with the decision made during the review process along with additional information like reasons of the decision, type and subtype classifications.
-
-### Decision process
-.IPAC-CLABSI case review process
-image::../images/ipac_clabsi_decison_process.png[Decision process]
-
-

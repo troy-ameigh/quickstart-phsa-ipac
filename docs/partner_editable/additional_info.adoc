@@ -7,7 +7,7 @@
 
 == Post-deployment steps
 // If post-deployment steps are required, add them here. If not, remove the heading
--  setup private workforce in sagemaker 
+After testing, create a private workforce in your Amazon SageMaker deployment. For more information, see https://docs.aws.amazon.com/sagemaker/latest/dg/sms-workforce-create-private-console.html[Create a Private Workforce (Amazon SageMaker Console)]. 
 
 == Best practices for using {partner-product-short-name} on AWS
 // Provide post-deployment best practices for using the technology on AWS, including considerations such as migrating data, backups, ensuring high performance, high availability, etc. Link to software documentation for detailed information.
