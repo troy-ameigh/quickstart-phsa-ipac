@@ -62,23 +62,14 @@ Bulk patient data ingested by the deployment must be in a Microsoft Excel spread
 |===
 
 === Sheet 3
+
 [cols=3*]
+|===
 |*Field name*|*Data type*|*Description*
 |*encntr_num*|Int64|Encounter number.
 |*mrn*|Int64|Medical record number.
 |encntr_id|Int64|Encounter ID.
 |accession_nbr|String|
--  organism_desc_src
--  event_end_dt_tm
-
-*.* The third sheet should have these columns:
-
-int64:
-
--  encntr_num
--  encntr_id
--  mrn
-str:
-
--  accession_nbr
--  organism_desc_src
+|organism_desc_src|String|
+|event_end_dt_tm|DateTime|Event end date and time, in format YYYY/MM/DD.
+|===
