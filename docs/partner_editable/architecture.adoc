@@ -1,7 +1,8 @@
 Deploying this Quick Start builds the following {partner-product-short-name} environment in the AWS Cloud.
 
+:xrefstyle: short
 [#architecture1]
-.Quick Start architecture for {partner-product-short-name} on AWS
+.Quick Start architecture for {partner-product-name} on AWS
 image::../images/phsa-ipac-architecture-diagram.png[Architecture]
 
 As shown in <<architecture1>>, the Quick Start sets up the following:

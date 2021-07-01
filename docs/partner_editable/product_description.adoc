@@ -2,32 +2,4 @@
 // Briefly describe the software. Use consistent and clear branding. 
 // Include the benefits of using the software on AWS, and provide details on usage scenarios.
 
-== *Background*
-A central line-associated bloodstream infection (CLABSI) is a serious infection that occurs when germs enter the bloodstream through a catheter.
-
-Because CLABSI can be prevented through proper insertion techniques and management of the central line, surveillance systems are crucial in any inpatient location where denominator data can be collected, which can include
-critical/intensive care units (ICU), specialty care areas (SCA), neonatal units including neonatal intensive care units (NICUs), step down units, wards, and long term care units.
-
-Monitoring CLABSI levels and identifying individual cases, associated nursing units and outbreaks are mandatory, but also important to reduce harm and to improve the quality of patient safety. Our tool provides an interface to help the process.
-
-## *Software*
-
-This Quick Start deploys an interface for infection control practitioners (ICPs), physicians, and epidemiologists to review potential CLABSI cases and classify the information. It is a requirement that each patient undergoes at least two round of reviews, one from ICP and one from the Physician group.
-
-
-
-
-
-
-### Decision process
-.IPAC-CLABSI case review process
-image::../images/ipac_clabsi_decison_process.png[Decision process]
-
-This Quick Start deploys Providence Health Care Infection Prevention and Control (IPAC) for central line-associated bloodstream infection (CLABSI) on the Amazon Web Services (AWS) Cloud. The deployment retrieves bulk patient data in Microsoft Excel format from an on-premises source. AWS Lambda functions transform data into individual infection cases and  display these to reviewers using Amazon SageMaker Ground Truth. Infection control practitioners review cases and manually label those that meet clinical criteria as confirmed CLASBI infections.
-
-
-#### User interface
-The application utilizes AWS SageMaker Ground Truth as a user interface. A single Ground Truth labeling / reviewing job provides all information about a patient disregard of having one or multiple CLABSI events. The decision is done on the patient level.
-
-#### Result
-The application accumulates all decision information from the reviewer team and genarates and aggregated data file. This file contains all input data with the decision made during the review process along with additional information like reasons of the decision, type and subtype classifications.
+This Quick Start deploys Providence Health Care Infection Prevention and Control (IPAC) for CLABSI on the Amazon Web Services (AWS) Cloud. The deployment retrieves bulk patient data in Microsoft Excel format from an on-premises source. AWS Lambda functions transform data into individual infection cases and  display these to reviewers using Amazon SageMaker Ground Truth. Infection control practitioners review cases and manually label those that meet clinical criteria as confirmed CLASBI infections.

@@ -124,15 +124,15 @@ Parameters:
     Default: ''
   CognitoUserPool:
     Type: String
-    Description: '[Optional]Cognito User pool to use with Sagemaker Workteams. If one is not provided this will be created for you.
+    Description: (Optional) Cognito User pool to use with Sagemaker Workteams. If one is not provided this will be created for you.
     Default: ''
   CognitoClientId:
     Type: String
-    Description: '[Optional]Cognito Client ID to use with Sagemaker Workteams. If one is not provided this will be created for you.
+    Description: (Optional) Cognito Client ID to use with Sagemaker Workteams. If one is not provided this will be created for you.
     Default: ''
   CognitoUserGroup:
     Type: String
-    Description: '[Optional]Cognito User Group to use with Sagemaker Workteams. If one is not provided this will be created for you.
+    Description: (Optional) Cognito User Group to use with Sagemaker Workteams. If one is not provided this will be created for you.
     Default: ''
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
