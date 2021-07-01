@@ -7,7 +7,7 @@
 
 == Post-deployment steps
 // If post-deployment steps are required, add them here. If not, remove the heading
-After testing, create a private workforce in your Amazon SageMaker deployment. For more information, see https://docs.aws.amazon.com/sagemaker/latest/dg/sms-workforce-create-private-console.html[Create a Private Workforce (Amazon SageMaker Console)]. 
+Create a private workforce in your Amazon SageMaker deployment. For more information, see https://docs.aws.amazon.com/sagemaker/latest/dg/sms-workforce-create-private-console.html[Create a Private Workforce (Amazon SageMaker Console)]. 
 
 == Best practices for using {partner-product-short-name} on AWS
 // Provide post-deployment best practices for using the technology on AWS, including considerations such as migrating data, backups, ensuring high performance, high availability, etc. Link to software documentation for detailed information.
@@ -15,13 +15,11 @@ After testing, create a private workforce in your Amazon SageMaker deployment. F
 -   Leave comments and explain work
 -   Don't leave job sessions open for long periods, each job session has a maximum time limit.
 
-_Add any best practices for using the software.
-
 == Security
 // Provide post-deployment best practices for using the technology on AWS, including considerations such as migrating data, backups, ensuring high performance, high availability, etc. Link to software documentation for detailed information.
--  https://aws.amazon.com/architecture/security-identity-compliance/?cards-all.sort-by=item.additionalFields.sortDate&cards-all.sort-order=desc[Security Best Practices by AWS]
+* https://aws.amazon.com/architecture/security-identity-compliance/?cards-all.sort-by=item.additionalFields.sortDate&cards-all.sort-order=desc[Security Best Practices by AWS]
 
-== Other useful information
+// == Other useful information
 //Provide any other information of interest to users, especially focusing on areas where AWS or cloud usage differs from on-premises usage.
 
 _Add any other details that will help the customer use the software on AWS._

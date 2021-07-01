@@ -2,21 +2,18 @@
 // If no preperation is required, remove all content from here
 = Required data schema:
 
-We expect an Excel file with 3 sheets in the Landing-Zone bucket to start the process:
+The bulk patient data ingested by the deployment must be in a Microsoft Excel spreadsheet (.xlsx). The spreadsheet must contain three sheets, each containing the fields shown in the following table. Fields in bold are required. All others are optional but recommended.
 
 == The first sheet
-It needs to contain the following information. Please see below the column names and their expected datatype.
-
-Field marked in *bold* are mandatory, the rest of the fields are recommended, but optional.
 
 === Int64 fields
 
--  *encntr_num* (Encounter number)
+-  *encntr_num* (encounter number)
 -  *mrn* (Medical Record Number)
--  encntr_id (Encouner ID)
--  collection_date_id (Blood collection date)
--  loc_bed_desc_src_at_collection (Patient's bed number at the blood collection)
--  transfer_in_to_collect (Nursing unit admission date to blood collection date in days)
+-  encntr_id (encounter ID)
+-  collection_date_id (blood collection date)
+-  loc_bed_desc_src_at_collection (patient bed number at the blood collection)
+-  transfer_in_to_collect (nursing unit admission date to blood collection date in days)
 -  transfer_out_to_collect (Blood collection date to patient's discharge date in days)
 -  ce_dynamic_label_id (Internal ID)
 -  line_tube_drain_insertion_seq (Central line insertion sequence)
@@ -69,16 +66,3 @@ Field marked in *bold* are mandatory, the rest of the fields are recommended, bu
 
 === DateTime Columns (YYYY/MM/DD/)
 -  *event_end_dt_tm* (Temperature reading date and time information)
-
-
-=== Prepare your AWS account
-
-_Describe any setup required in the AWS account prior to template launch_
-
-=== Prepare your {partner-company-name} account
-
-_Describe any setup required in the partner portal/account prior to template launch_
-
-=== Prepare for the deployment
-
-_Describe any preparation required to complete the product build, such as obtaining licenses or placing files in S3_
