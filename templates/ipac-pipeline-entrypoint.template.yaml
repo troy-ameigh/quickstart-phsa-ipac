@@ -69,7 +69,7 @@ Parameters:
   RepositoryBranchName:
     Type: String
     Default: main
-    Description: Repository branch from which to retrieve input data.
+    Description: Repository branch where the source code is located.
   ApplicationName:
     Type: String
     Description: Application name.
@@ -84,7 +84,7 @@ Parameters:
     Default: 'dev'
   Suffix:
     Type: String
-    Description: Suffix of the file that triggers pre-processing AWS Lambda function.
+    Description: Suffix of the file that invokes the pre-processing AWS Lambda function.
     Default: '-7'
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
@@ -116,7 +116,7 @@ Parameters:
     Default: ''
   LandingBucketName:
     Type: String
-    Description: The name of the S3 bucket for the files landing zone. If you leave this parameter blank, an S3 bucket will be created.'
+    Description: The name of the S3 bucket for the files landing zone. If you leave this parameter blank, an S3 bucket will be created.
     Default: ''
   ProcessingBucketName:
     Type: String
@@ -124,15 +124,15 @@ Parameters:
     Default: ''
   CognitoUserPool:
     Type: String
-    Description: '[Optional]Cognito User pool to use with Sagemaker Workteams. If one is not provided this will be created for you.'
+    Description: '[Optional]Cognito User pool to use with Sagemaker Workteams. If one is not provided this will be created for you.
     Default: ''
   CognitoClientId:
     Type: String
-    Description: '[Optional]Cognito Client ID to use with Sagemaker Workteams. If one is not provided this will be created for you.'
+    Description: '[Optional]Cognito Client ID to use with Sagemaker Workteams. If one is not provided this will be created for you.
     Default: ''
   CognitoUserGroup:
     Type: String
-    Description: '[Optional]Cognito User Group to use with Sagemaker Workteams. If one is not provided this will be created for you.'
+    Description: '[Optional]Cognito User Group to use with Sagemaker Workteams. If one is not provided this will be created for you.
     Default: ''
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
