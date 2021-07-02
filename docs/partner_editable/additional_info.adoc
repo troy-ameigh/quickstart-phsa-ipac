@@ -3,7 +3,7 @@
 
 === Test the deployment
 // If steps are required to test the deployment, add them here. If not, remove the heading
--  uploading files/anonymous_patients.xlxs to s3, it is an excell file with fake patient data that can simulate the label job work flow. Upon successfull testing 1abel jobs will be created in AWS SageMaker GroundTruth.
+-  Upload files/anonymous_patients.xlxs to s3 to simulate the label job work flow. Labeling jobs will be created in AWS SageMaker GroundTruth.
 
 === Post-deployment steps
 // If post-deployment steps are required, add them here. If not, remove the heading

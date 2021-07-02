@@ -50,7 +50,6 @@ Bulk patient data ingested by the deployment must be in a Microsoft Excel spread
 |===
 
 === Sheet 2
-
 |=== 
 |*Column*|*Data type*|*Description*
 |*mrn*|Int64|Medical record number.
@@ -59,7 +58,6 @@ Bulk patient data ingested by the deployment must be in a Microsoft Excel spread
 |===
 
 === Sheet 3
-
 |===
 |*Column*|*Data type*|*Description*
 |*encntr_num*|Int64|Encounter number.
