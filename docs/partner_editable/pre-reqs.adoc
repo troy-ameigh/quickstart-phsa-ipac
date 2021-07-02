@@ -4,7 +4,8 @@ Bulk patient data ingested by the deployment must be in a Microsoft Excel spread
 
 === Sheet 1
 |=== 
-|*Column name*|*Data type*|*Description*
+|Column name|Data type|Description
+
 |*encntr_num*|Int64|Encounter number.
 |*mrn*|Int64|Medical record number.
 |encntr_id|Int64|Encounter ID.
@@ -51,7 +52,8 @@ Bulk patient data ingested by the deployment must be in a Microsoft Excel spread
 
 === Sheet 2
 |=== 
-|*Column*|*Data type*|*Description*
+|Column|Data type|Description
+
 |*mrn*|Int64|Medical record number.
 |*result_value*|Int64|Temperature reading.
 |*event_end_dt_tm*|DateTime|Temperature reading date and time, in format YYYY/MM/DD.
@@ -59,7 +61,8 @@ Bulk patient data ingested by the deployment must be in a Microsoft Excel spread
 
 === Sheet 3
 |===
-|*Column*|*Data type*|*Description*
+|Column|Data type|Description
+
 |*encntr_num*|Int64|Encounter number.
 |*mrn*|Int64|Medical record number.
 |encntr_id|Int64|Encounter ID.
