@@ -4,4 +4,4 @@
 
 This guide provides instructions for deploying the {partner-product-short-name} Quick Start reference architecture on the AWS Cloud.
 
-This Quick Start is for users who are in health care, and life sciences organizations.
+This Quick Start is for health care teams that want to scale and expedite central line-associated bloodstream infection (CLABSI) reviews.

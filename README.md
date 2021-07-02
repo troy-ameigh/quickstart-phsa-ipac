@@ -1,31 +1,8 @@
+# Providence Health Care IPAC-CLABSI on AWS
 
-Providence Health Care
-======================
+For architectural details, step-by-step instructions, and customization options, see the [deployment guide](https://fwd.aws/*****?).
 
-General
--------
+To post feedback, submit feature ideas, or report bugs, use the **Issues** section of this GitHub repo.
 
-Provide best practice guidance on how to set up multi-account pipelines
-
-Connection
-----------
-- GitHub
-
-CI/CD Pipeline
---------------
-- Build
-- Package
-- Deploy
-
-Project IPAC
-------------
-- Write a Lambda Function
-- Write a SageMaker tagging solution
-- S3 for Frontend
-
-IPAC Frontend
--------------
-React App
-S3
-Backend
+To submit code for this Quick Start, see the [AWS Quick Start Contributor's Kit](https://aws-quickstart.github.io/).
 

@@ -3,10 +3,11 @@
 |Resource |This deployment uses
 
 // Space needed to maintain table headers
-|Lambdas | 4
+
+|AWS Lambda functions | 3 
 |Security groups | 3
 |AWS Identity and Access Management (IAM) roles |1
-|SageMaker Ground Truth Label Job  | 50-100/day
-|S3 buckets | 3
-|===
+|SageMaker Ground Truth labeling jobs  | 50-100/day
+|S3 buckets | 4
+
 

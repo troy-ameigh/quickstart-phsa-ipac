@@ -5,6 +5,4 @@
 
 // Human readable column names!
 
-This Quick Start also assumes familiarity with AWS CloudFormations , SageMaker GroundTruth, Lambdas, Cloudwatch, IAM, Roles, S3
-
-
+This Quick Start assumes familiarity with basic concepts in networking, database operations, and data encryption. Familiarity with the concept of https://docs.aws.amazon.com/sagemaker/latest/dg/sms.html[data labeling] in Amazon SageMaker Ground Truth is useful.
