@@ -12,7 +12,7 @@ As shown in <<architecture1>>, the Quick Start sets up the following:
 * Three AWS Lambda functions 
 ** A function to retrieve and partition bulk data into individual review cases and save them to an S3 bucket.
 ** A function to process the input manifest for Amazon SageMaker GroundTruth. It retrieves data from the partitioned data S3 bucket and transforms it into the JavaScript Object Notation (JSON) format required by Ground Truth.
-** A function to retrieve and process Ground Truth output data. It sends cases with no decision to the partitioned data and initiates another review job in Ground Truth. It deposits cases labeled as confirmed infections to a reporting S3 bucket.
+** A function to retrieve and process Ground Truth output data. It sends cases with no decision to the partitioned data bucket and initiates another review job in Ground Truth. It deposits cases labeled as confirmed infections to a reporting S3 bucket.
 * Amazon SageMaker Ground Truth to provide the user interface.
 * AWS Key Management Service (AWS KMS) to encrypt data (not shown).
 * Amazon Cognito to provide authentication, authorization, and user management for the Ground Truth user interface (not shown).
