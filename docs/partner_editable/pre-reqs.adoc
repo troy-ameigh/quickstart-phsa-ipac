@@ -3,8 +3,6 @@
 Bulk patient data ingested by the deployment must be in a Microsoft Excel spreadsheet (.xlsx). The spreadsheet must contain three sheets, each containing the columns and data shown in the following tables. Items in bold are required. All others are optional but recommended.
 
 === Sheet 1
-
-[cols=3*]
 |=== 
 |*Column name*|*Data type*|*Description*
 |*encntr_num*|Int64|Encounter number.
@@ -53,7 +51,6 @@ Bulk patient data ingested by the deployment must be in a Microsoft Excel spread
 
 === Sheet 2
 
-[cols=3*]
 |=== 
 |*Column*|*Data type*|*Description*
 |*mrn*|Int64|Medical record number.
@@ -63,7 +60,6 @@ Bulk patient data ingested by the deployment must be in a Microsoft Excel spread
 
 === Sheet 3
 
-[cols=3*]
 |===
 |*Column*|*Data type*|*Description*
 |*encntr_num*|Int64|Encounter number.
