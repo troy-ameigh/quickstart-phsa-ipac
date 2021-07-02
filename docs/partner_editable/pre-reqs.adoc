@@ -1,12 +1,12 @@
 == Data schema requirements
 
-Bulk patient data ingested by the deployment must be in a Microsoft Excel spreadsheet (.xlsx). The spreadsheet must contain three sheets, each containing the data shown in the following lists. Fields in bold are required. All others are optional but recommended.
+Bulk patient data ingested by the deployment must be in a Microsoft Excel spreadsheet (.xlsx). The spreadsheet must contain three sheets, each containing the columns and data shown in the following tables. Items in bold are required. All others are optional but recommended.
 
 === Sheet 1
 
 [cols=3*]
 |=== 
-|*Field name*|*Data type*|*Description*
+|*Column name*|*Data type*|*Description*
 |*encntr_num*|Int64|Encounter number.
 |*mrn*|Int64|Medical record number.
 |encntr_id|Int64|Encounter ID.
@@ -55,7 +55,7 @@ Bulk patient data ingested by the deployment must be in a Microsoft Excel spread
 
 [cols=3*]
 |=== 
-|*Field name*|*Data type*|*Description*
+|*Column*|*Data type*|*Description*
 |*mrn*|Int64|Medical record number.
 |*result_value*|Int64|Temperature reading.
 |*event_end_dt_tm*|DateTime|Temperature reading date and time, in format YYYY/MM/DD.
@@ -65,7 +65,7 @@ Bulk patient data ingested by the deployment must be in a Microsoft Excel spread
 
 [cols=3*]
 |===
-|*Field name*|*Data type*|*Description*
+|*Column*|*Data type*|*Description*
 |*encntr_num*|Int64|Encounter number.
 |*mrn*|Int64|Medical record number.
 |encntr_id|Int64|Encounter ID.
