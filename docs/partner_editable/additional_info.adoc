@@ -3,7 +3,18 @@
 
 === Test the deployment
 // If steps are required to test the deployment, add them here. If not, remove the heading
--  Upload files/anonymous_patients.xlxs to s3 to simulate the label job work flow. Labeling jobs will be created in AWS SageMaker GroundTruth.
+* After uploading assets/anonymous_patients.xlsx to s3, it is an excel file with fake patient data that can simulate the label job work flow. If the test is successful, labeling jobs are created in GroundTruth.
+* Complete a review and confirm that the job is relaunched in Ground Truth for relabeling by a second reviewer.
+* Submit a job with the label `Require further review - revisit patient later`. Then, confirm that the job launches with same number of reviewers.
+* Check the time sheet to see if created jobs are being recorded there.
+* Reviewers can leave comments on IWP plots (comment_on_iwp) and on Pathogens (comment_on_pathogen)
+* Reviewers also need to leave their general comments reasons behind their decision in the (comment) box.
+* Reviewers can use the label `Require further review - revisit patient later` to save their work and revisit a job later.
+* A job session can not be open for more than eight hours. Reviewers have 10 days to complete reviewing a job. After 10 days the job will relaunch.
+
+For more information, see https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_HumanTaskConfig.html#:~:text=TaskTimeLimitInSeconds[HumanTaskConfig].
+
+
 
 === Post-deployment steps
 // If post-deployment steps are required, add them here. If not, remove the heading
@@ -11,9 +22,9 @@ Create a private workforce in your Amazon SageMaker deployment. For more informa
 
 === Best practices for using {partner-product-short-name} on AWS
 // Provide post-deployment best practices for using the technology on AWS, including considerations such as migrating data, backups, ensuring high performance, high availability, etc. Link to software documentation for detailed information.
--   Submitting jobs will save your progress with "require furthure review" flag save your progress and wont escelate to the next reviewer
--   Leave comments and explain work
--   Don't leave job sessions open for long periods, each job session has a maximum time limit.
+- Using the custom UI within Sage Maker Ground Truth, users will need to submit jobs in order to save labelers’ progress. Users can also save progress with "require further review" flag.
+- Using the custom UI within Sage Maker Ground Truth ,Leave comments and explain work in the comment box 
+- Using the custom UI within Sage Maker Ground Truth. Don't leave job sessions open for long periods, each job session has a maximum time limit  of 8 hours
 
 === Security
 // Provide post-deployment best practices for using the technology on AWS, including considerations such as migrating data, backups, ensuring high performance, high availability, etc. Link to software documentation for detailed information.
