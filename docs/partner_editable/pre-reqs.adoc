@@ -1,6 +1,6 @@
 == Data schema requirements
 
-Bulk patient data ingested by the deployment must be in a Microsoft Excel spreadsheet (.xlsx). The spreadsheet must contain three sheets, each containing the columns and data shown in the following lists. Items in bold are required. All others are optional but recommended.
+Bulk patient data ingested by the deployment must be in a Microsoft Excel spreadsheet (.xlsx). The spreadsheet must contain three sheets, each containing the data shown in the following lists. Items in bold are required. All others are optional but recommended.
 
 === Sheet 1
 ==== Int64 data
