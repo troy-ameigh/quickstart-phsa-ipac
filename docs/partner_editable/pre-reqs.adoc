@@ -15,8 +15,8 @@ Bulk patient data ingested by the deployment must be in a Microsoft Excel spread
 * line_tube_drain_insertion_seq: Central line insertion sequence.
 * line_insert_to_collection: Number of days from central line insertion date to blood collection date.
 * birth_date_id: Patient date of birth.
-* line_remove_to_collect: Number of days from central line removal to blood collection date in days
-* bc_phn: Provincial Health Care health number
+* line_remove_to_collect: Number of days from central line removal to blood collection date.
+* bc_phn: Provincial Health Care health number.
 
 ==== String data
 * nursing_unit_short_desc: Nursing unit code.
@@ -66,5 +66,5 @@ Bulk patient data ingested by the deployment must be in a Microsoft Excel spread
 * *mrn*: Medical record number (required).
 
 ==== String data
-* accession_nbr
-* organism_desc_src
+* accession_nbr.
+* organism_desc_src.
