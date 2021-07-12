@@ -3,7 +3,7 @@
 
 === Test the deployment
 // If steps are required to test the deployment, add them here. If not, remove the heading
-* Use anonymous_patients.xlsx to test the workflow. This file is already uploaded to the assets folder in the S3 bucket deployed by the Quick Start. It is a spreadsheet containing fictitious patient data configured according to the link:#_data_schema_requirements[data schema requirements]. If the test is successful, labeling jobs are created in GroundTruth for reviewers.
+* Upload assets/anonymous_patients.xlsx to the input data S3 bucket to simulate the ingestion of patient data into the system. Labeling jobs should be created in GroundTruth.
 * Complete a review and confirm that the job is relaunched in Ground Truth for labeling by a second reviewer.
 * Submit a job with the label `Require further review - revisit patient later`. Confirm that the job launches with same number of reviewers required.
 * Confirm that created jobs are recorded in the time sheet.* 
