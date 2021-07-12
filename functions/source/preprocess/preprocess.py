@@ -529,10 +529,10 @@ def preprocess(obj):
     '''
     
     data = obj['Body'].read()
-    xls = pd.ExcelFile(data)
-    dataframe_patients = pd.read_excel(xls, 'Sheet1')
-    dataframe_temperature = pd.read_excel(xls, 'Sheet2')
-    dataframe_organism = pd.read_excel(xls, 'Sheet3')
+    xls = pd.read_excel(data,None,engine='openpyxl')
+    dataframe_patients = xls['Sheet1']
+    dataframe_temperature = xls['Sheet2']
+    dataframe_organism = xls['Sheet3']
     dataframe_patients.rename(str.lower, axis='columns',inplace=True)
     dataframe_temperature.rename(str.lower, axis='columns',inplace=True)
     dataframe_organism.rename(str.lower, axis='columns', inplace=True)
