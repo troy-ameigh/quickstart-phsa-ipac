@@ -1,6 +1,6 @@
 # Providence Health Care IPAC-CLABSI on AWS
 
-For architectural details, step-by-step instructions, and customization options, see the [deployment guide](https://fwd.aws/*****?).
+For architectural details, step-by-step instructions, and customization options, see the [deployment guide](https://fwd.aws/7RRG7?).
 
 To post feedback, submit feature ideas, or report bugs, use the **Issues** section of this GitHub repo.
 
