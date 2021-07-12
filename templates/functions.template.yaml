@@ -5,24 +5,36 @@ Metadata:
     Exclusions: [ W9001, W9002, W9003, W9004, W9006, W3005 ]
 Parameters:
   QSS3BucketName:
-    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
-    ConstraintDescription: Quick Start bucket name can include numbers, lowercase
-      letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
-      (-).
+    AllowedPattern: '^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$'
+    ConstraintDescription:
+      The Quick Start bucket name can include numbers, lowercase
+      letters, uppercase letters, and hyphens (-). It cannot start or end with a 
+      hyphen (-).
     Default: aws-quickstart
-    Description: S3 bucket name for the Quick Start assets. This string can include
-      numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start
-      or end with a hyphen (-).
+    Description:
+      Name of the S3 bucket for your copy of the Quick Start assets. 
+      Keep the default name unless you are customizing the template. 
+      Changing the name updates code references to point to a new Quick 
+      Start location. This name can include numbers, lowercase letters, 
+      uppercase letters, and hyphens, but do not start or end with a hyphen (-). 
+      See https://aws-quickstart.github.io/option1.html.
     Type: String
   QSS3KeyPrefix:
-    AllowedPattern: ^[0-9a-zA-Z-/]*$
-    ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters,
-      uppercase letters, hyphens (-), and forward slash (/).
-    Description: S3 key prefix for the Quick Start assets. Quick Start key prefix
-      can include numbers, lowercase letters, uppercase letters, hyphens (-), and
-      forward slash (/).
-    Type: String
+    AllowedPattern: '^[0-9a-zA-Z-/]*$'
+    ConstraintDescription:
+      The Quick Start S3 key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), and forward slashes (/). The prefix should
+      end with a forward slash (/).
     Default: quickstart-phsa-ipac/
+    Description:
+      S3 key prefix that is used to simulate a directory for your copy of the 
+      Quick Start assets. Keep the default prefix unless you are customizing 
+      the template. Changing this prefix updates code references to point to 
+      a new Quick Start location. This prefix can include numbers, lowercase 
+      letters, uppercase letters, hyphens (-), and forward slashes (/). End with 
+      a forward slash. See https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html 
+      and https://aws-quickstart.github.io/option1.html.
+    Type: String
   DestinationBucket:
     Type: String
     Default: ""
@@ -116,7 +128,7 @@ Resources:
   CopyZipsFunction:
     Type: AWS::Lambda::Function
     Properties:
-      Description: Copies objects from a source S3 bucket to a destination
+      Description: Copies objects from a source S3 bucket to a destination.
       Handler: index.handler
       Runtime: python3.7
       Role: !GetAtt CopyZipsRole.Arn
@@ -196,7 +208,7 @@ Resources:
   ApplyBucketNotificationFunction:
     Type: AWS::Lambda::Function
     Properties:
-      Description: Dummy function, just logs the received event
+      Description: Dummy function that logs the received event.
       Handler: index.handler
       Runtime: python3.8
       Role: !GetAtt ApplyNotificationFunctionRole.Arn
@@ -588,7 +600,7 @@ Resources:
       Code:
         S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/job-creation/lambda.zip'
-      Description: Creates custom jobs in SageMaker GroundTruth by sending a request
+      Description: Creates custom jobs in SageMaker GroundTruth by sending a request.
       Handler: job-creation.lambda_handler
       Role: !GetAtt JobCreationLambdaExecutionRole.Arn
       MemorySize: 512
@@ -602,7 +614,7 @@ Resources:
       Code:
         S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ] 
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/Keep-job-alive/lambda.zip'
-      Description: Re-lunches jobs that are passed 10 days mark and expired.
+      Description: Relaunches jobs that are older than 10 days and expired.
       Handler: keep-job-alive.lambda_handler
       Role: !GetAtt JobCreationLambdaExecutionRole.Arn
       MemorySize: 128
@@ -634,7 +646,7 @@ Resources:
       Code:
         S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/loop/lambda.zip'
-      Description: Reads the Output.manifest and if certain conditions are met, recreates source-csv to re-trigger job-creation lambda.
+      Description: Reads the output manifest and if certain conditions are met, recreates source-csv to re-trigger the job-creation AWS Lambda function.
       Handler: loop.lambda_handler
       Role: !GetAtt FeedbackLoopLambdaExecutionRole.Arn
       MemorySize: 512
@@ -648,7 +660,7 @@ Resources:
       Code:
         S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/preprocess/lambda.zip'
-      Description: Takes in bulk patient data, devides into individual patient files and generates plots for them and save to s3.
+      Description: Ingests bulk patient data, partitions it into individual patient files, generates plots for files, and saves files to an S3 bucket.
       Handler: preprocess.lambda_handler
       Role: !GetAtt PreProcessLambdaExecutionRole.Arn
       MemorySize: 2048
@@ -663,7 +675,7 @@ Resources:
       Code:
         S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/sagemaker-phc-2020-11-16-postprocess/lambda.zip'
-      Description: Consolidates labels, if there are multiple confilicting label
+      Description: Consolidates conflicting labels.
       Handler: sagemaker-phc-2020-11-16-postprocess.lambda_handler
       Role: !GetAtt SageMakerPostprocessLambdaExecutionRole.Arn
       MemorySize: 128
@@ -677,7 +689,7 @@ Resources:
       Code:
         S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/sagemaker-phc-2020-11-16-preprocess/lambda.zip'
-      Description: Reads in the task input data-object for the GroundTruth
+      Description: Reads in the task input data-object for SageMaker Ground Truth.
       Handler: sagemaker-phc-2020-11-16-preprocess.lambda_handler
       Role: !GetAtt SageMakerPreprocessLambdaExecutionRole.Arn
       MemorySize: 128
