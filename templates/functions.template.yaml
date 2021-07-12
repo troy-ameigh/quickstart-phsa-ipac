@@ -1,0 +1,758 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Deploys Lambda functions required for the PHSA IPAC Quick Start (qs-1romd7rj8)
+Metadata:
+  QSLint:
+    Exclusions: [ W9001, W9002, W9003, W9004, W9006, W3005 ]
+Parameters:
+  QSS3BucketName:
+    AllowedPattern: '^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$'
+    ConstraintDescription:
+      The Quick Start bucket name can include numbers, lowercase
+      letters, uppercase letters, and hyphens (-). It cannot start or end with a 
+      hyphen (-).
+    Default: aws-quickstart
+    Description:
+      Name of the S3 bucket for your copy of the Quick Start assets. 
+      Keep the default name unless you are customizing the template. 
+      Changing the name updates code references to point to a new Quick 
+      Start location. This name can include numbers, lowercase letters, 
+      uppercase letters, and hyphens, but do not start or end with a hyphen (-). 
+      See https://aws-quickstart.github.io/option1.html.
+    Type: String
+  QSS3KeyPrefix:
+    AllowedPattern: '^[0-9a-zA-Z-/]*$'
+    ConstraintDescription:
+      The Quick Start S3 key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), and forward slashes (/). The prefix should
+      end with a forward slash (/).
+    Default: quickstart-phsa-ipac/
+    Description:
+      S3 key prefix that is used to simulate a directory for your copy of the 
+      Quick Start assets. Keep the default prefix unless you are customizing 
+      the template. Changing this prefix updates code references to point to 
+      a new Quick Start location. This prefix can include numbers, lowercase 
+      letters, uppercase letters, hyphens (-), and forward slashes (/). End with 
+      a forward slash. See https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html 
+      and https://aws-quickstart.github.io/option1.html.
+    Type: String
+  DestinationBucket:
+    Type: String
+    Default: ""
+  LandingBucketName:
+    Type: String
+    Default: ""
+  ProcessingBucketName:
+    Type: String
+    Default: ""
+Conditions:
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
+  CreateDestBucket: !Equals [!Ref DestinationBucket, ""]
+  LandingBucket: !Equals [ !Ref LandingBucketName, "" ]
+  ProcessingBucket: !Equals [ !Ref ProcessingBucketName, "" ]
+Resources:
+  LambdaZipsBucket:
+    Condition: CreateDestBucket
+    Type: "AWS::S3::Bucket"
+  CopyZipsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ConfigPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: Logging
+                Effect: Allow
+                Action: logs:*
+                Resource: '*'
+              - Sid: S3Source
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:PutObject
+                  - s3:PutObjectAcl
+                  - s3:DeleteObject
+                Resource:
+                  - !Sub
+                    - "arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}"
+                    - S3Bucket: !If [ UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName ]
+                  - !Sub
+                    - "arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}*"
+                    - S3Bucket: !If [ UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName ]
+              - Sid: S3Dest
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:PutObject
+                  - s3:PutObjectAcl
+                  - s3:DeleteObject
+                Resource:
+                  - !Sub
+                    - "arn:${AWS::Partition}:s3:::${DestBucket}"
+                    - DestBucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
+                  - !Sub
+                    - "arn:${AWS::Partition}:s3:::${DestBucket}/*"
+                    - DestBucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
+  CopyZips:
+    DependsOn: CopyZipsFunction
+    Type: Custom::CopyZips
+    Properties:
+      ServiceToken: !GetAtt 'CopyZipsFunction.Arn'
+      DestBucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
+      SourceBucket: !If [ UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName ]
+      Prefix: !Ref 'QSS3KeyPrefix'
+      Objects:
+        - functions/packages/boto3layer/lambda.zip
+        - functions/packages/job-creation/lambda.zip
+        - functions/packages/Keep-job-alive/lambda.zip
+        - functions/packages/loop/lambda.zip
+        - functions/packages/preprocess/lambda.zip
+        - functions/packages/sagemaker-phc-2020-11-16-postprocess/lambda.zip
+        - functions/packages/sagemaker-phc-2020-11-16-preprocess/lambda.zip
+        - functions/packages/mathliblayer/lambda.zip
+        - functions/packages/numpylayer/lambda.zip
+        - functions/packages/pandaslayer/lambda.zip
+        - functions/packages/preprocesslayer/lambda.zip
+        - functions/packages/xlrdlayer/lambda.zip
+        - functions/packages/xlrd/lambda.zip
+  CopyZipsFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Copies objects from a source S3 bucket to a destination.
+      Handler: index.handler
+      Runtime: python3.7
+      Role: !GetAtt CopyZipsRole.Arn
+      Timeout: 240
+      Code:
+        ZipFile: |
+          import json
+          import logging
+          import threading
+          import boto3
+          import cfnresponse
+          def copy_objects(source_bucket, dest_bucket, prefix, objects):
+              s3 = boto3.client('s3')
+              for o in objects:
+                  key = prefix + o
+                  copy_source = {
+                      'Bucket': source_bucket,
+                      'Key': key
+                  }
+                  s3.copy_object(CopySource=copy_source, Bucket=dest_bucket, Key=key)
+          def delete_objects(bucket, prefix, objects):
+              s3 = boto3.client('s3')
+              objects = {'Objects': [{'Key': prefix + o} for o in objects]}
+              s3.delete_objects(Bucket=bucket, Delete=objects)
+          def timeout(event, context):
+              logging.error('Execution is about to time out, sending failure response to CloudFormation')
+              cfnresponse.send(event, context, cfnresponse.FAILED, {}, None)
+          def handler(event, context):
+              # make sure we send a failure to CloudFormation if the function is going to timeout
+              timer = threading.Timer((context.get_remaining_time_in_millis() / 1000.00) - 0.5, timeout, args=[event, context])
+              timer.start()
+              print('Received event: %s' % json.dumps(event))
+              status = cfnresponse.SUCCESS
+              try:
+                  source_bucket = event['ResourceProperties']['SourceBucket']
+                  dest_bucket = event['ResourceProperties']['DestBucket']
+                  prefix = event['ResourceProperties']['Prefix']
+                  objects = event['ResourceProperties']['Objects']
+                  if event['RequestType'] == 'Delete':
+                      delete_objects(dest_bucket, prefix, objects)
+                  else:
+                      copy_objects(source_bucket, dest_bucket, prefix, objects)
+              except Exception as e:
+                  logging.error('Exception: %s' % e, exc_info=True)
+                  status = cfnresponse.FAILED
+              finally:
+                  timer.cancel()
+                  cfnresponse.send(event, context, status, {}, None)
+  ApplyNotificationFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+            - sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Path: /
+      Policies:
+        - PolicyName: S3BucketNotificationPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowBucketNotification
+                Effect: Allow
+                Action:
+                - s3:PutBucketNotification
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ProcessingBucket}'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ProcessingBucket}/*'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${LandingBucket}'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${LandingBucket}/*'
+  ApplyBucketNotificationFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Dummy function that logs the received event.
+      Handler: index.handler
+      Runtime: python3.8
+      Role: !GetAtt ApplyNotificationFunctionRole.Arn
+      Timeout: 240
+      Code:
+        ZipFile: |
+          import logging
+          import json
+          import boto3
+          import cfnresponse
+
+          s3Client = boto3.client('s3')
+          logger = logging.getLogger()
+          logger.setLevel(logging.DEBUG)
+
+          def addBucketNotification(bucketName, lambdaFunctionConfigurations):
+            notificationResponse = s3Client.put_bucket_notification_configuration(
+              Bucket=bucketName,
+              NotificationConfiguration={
+                'LambdaFunctionConfigurations': lambdaFunctionConfigurations
+              }
+            )
+            return notificationResponse
+
+          def create(properties, physical_id):
+            bucketName = properties['S3Bucket']
+            lambdaFunctionConfigurations = properties['LambdaFunctionConfigurations']
+            response = addBucketNotification(bucketName, lambdaFunctionConfigurations)
+            logger.info('AddBucketNotification response: %s' % json.dumps(response))
+            return cfnresponse.SUCCESS, physical_id
+
+          def update(properties, physical_id):
+            return cfnresponse.SUCCESS, None
+
+          def delete(properties, physical_id):
+            return cfnresponse.SUCCESS, None
+
+          def handler(event, context):
+            logger.info('Received event: %s' % json.dumps(event))
+
+            status = cfnresponse.FAILED
+            new_physical_id = None
+
+            try:
+              properties = event.get('ResourceProperties')
+              physical_id = event.get('PhysicalResourceId')
+
+              status, new_physical_id = {
+                'Create': create,
+                'Update': update,
+                'Delete': delete
+              }.get(event['RequestType'], lambda x, y: (cfnresponse.FAILED, None))(properties, physical_id)
+            except Exception as e:
+              logger.error('Exception: %s' % e)
+              status = cfnresponse.FAILED
+            finally:
+              cfnresponse.send(event, context, status, {}, new_physical_id)
+  LandingBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !If
+        - LandingBucket
+        - !Sub
+          - 'ipac-clabsi-landing-${StackID}'
+          - StackID: !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ]
+        - !Ref LandingBucketName
+      AccessControl: Private
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+              KMSMasterKeyID:
+                Ref: DataEncryptionKey
+      VersioningConfiguration:
+        Status: Enabled
+  ProcessingBucketLogs:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !If
+        - ProcessingBucket
+        - !Sub
+          - 'ipac-clabsi-logs-${StackID}'
+          - StackID: !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ]
+        - !Ref ProcessingBucketName
+      AccessControl: LogDeliveryWrite
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+              KMSMasterKeyID:
+                Ref: DataEncryptionKey
+  ProcessingBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !If
+        - ProcessingBucket
+        - !Sub
+          - 'ipac-clabsi-processing-${StackID}'
+          - StackID: !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ]
+        - !Ref ProcessingBucketName
+      AccessControl: Private
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+              KMSMasterKeyID:
+                Ref: DataEncryptionKey
+      VersioningConfiguration:
+        Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Ref ProcessingBucketLogs
+        LogFilePrefix: processing-logs
+  LandingBucketEventPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:invokeFunction
+      SourceAccount: !Ref 'AWS::AccountId'
+      FunctionName: !Ref PreprocessLambda
+      SourceArn: !GetAtt LandingBucket.Arn
+      Principal: s3.amazonaws.com
+  ProcessingBucketEventPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:invokeFunction
+      SourceAccount: !Ref 'AWS::AccountId'
+      FunctionName: !Ref JobCreationLambda
+      SourceArn: !GetAtt ProcessingBucket.Arn
+      Principal: s3.amazonaws.com
+  ProcessingBucketEventPermissionSecond:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:invokeFunction
+      SourceAccount: !Ref 'AWS::AccountId'
+      FunctionName: !Ref LoopLambda
+      SourceArn: !GetAtt ProcessingBucket.Arn
+      Principal: s3.amazonaws.com
+  ApplyNotificationLandingBucket:
+    Type: Custom::ApplyNotification
+    Properties:
+      ServiceToken: !GetAtt ApplyBucketNotificationFunction.Arn
+      S3Bucket: !Ref 'LandingBucket'
+      LambdaFunctionConfigurations:
+      - Events: ["s3:ObjectCreated:Put"]
+        Id: S3ObjectCreatedEventLandingBucket
+        Filter:
+          Key:
+            FilterRules:
+              - Name: prefix
+                Value: ipac-clabsi/
+              - Name: suffix
+                Value: .xlsx
+        LambdaFunctionArn: !GetAtt PreprocessLambda.Arn
+  ApplyNotificationProcessingBucket:
+    Type: Custom::ApplyNotification
+    Properties:
+      ServiceToken: !GetAtt ApplyBucketNotificationFunction.Arn
+      S3Bucket: !Ref 'ProcessingBucket'
+      LambdaFunctionConfigurations:
+      - Events: ["s3:ObjectCreated:Put"]
+        Id: S3ObjectCreatedEventProcessingBucketCSV
+        Filter:
+          Key:
+            FilterRules:
+              - Name: prefix
+                Value: source-csv/
+              - Name: suffix
+                Value: .csv
+        LambdaFunctionArn: !GetAtt JobCreationLambda.Arn
+      - Events: [ "s3:ObjectCreated:Put" ]
+        Id: S3ObjectCreatedEventProcessingBucketManifest
+        Filter:
+          Key:
+            FilterRules:
+              - Name: prefix
+                Value: output/
+              - Name: suffix
+                Value: .manifest
+        LambdaFunctionArn: !GetAtt LoopLambda.Arn
+  DataEncryptionKey:
+    Type: 'AWS::KMS::Key'
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - EIAMPolicyWildcardResource
+          ignore_reasons:
+            EIAMPolicyWildcardResource: Resource '*' at line 422, is conditional.
+    Properties:
+      Description: Symmetric CMK for enryption/decryption of application data
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Allow IAM User permissions to manage the key
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
+            Action:
+            - kms:*
+            Resource: '*'
+          - Sid: Allow use of the key
+            Effect: Allow
+            Principal:
+              AWS: "*"
+            Action:
+              - kms:Decrypt
+            Resource: '*'
+            Condition:
+              StringEquals:
+                'kms:CallerAccount': !Ref 'AWS::AccountId'
+                'kms:ViaService': !Sub 's3.${AWS::Region}.amazonaws.com'
+  PreProcessLambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+                - apigateway.amazonaws.com
+                - events.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: LandingBucket_ProcessingBucket_access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:*'
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ProcessingBucket}'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${LandingBucket}'
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: !Sub 'arn:${AWS::Partition}:logs:*:*:*'
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  JobCreationLambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+                - apigateway.amazonaws.com
+                - events.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: ProcessingBucket_access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:*'
+                Resource: !Sub 'arn:${AWS::Partition}:s3:::${ProcessingBucket}'
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: !Sub 'arn:${AWS::Partition}:logs:*:*:*'
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  FeedbackLoopLambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+                - apigateway.amazonaws.com
+                - events.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: ProcessingBucket_access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:*'
+                Resource: !Sub 'arn:${AWS::Partition}:s3:::${ProcessingBucket}'
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: !Sub 'arn:${AWS::Partition}:logs:*:*:*'
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  SageMakerPreprocessLambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+                - apigateway.amazonaws.com
+                - events.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  SageMakerPostprocessLambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+                - apigateway.amazonaws.com
+                - events.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  Boto3layer:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      Content:
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/boto3layer/lambda.zip'
+  Mathliblayer:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      Content:
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/mathliblayer/lambda.zip'
+  Numpylayer:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      Content:
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/numpylayer/lambda.zip'
+  Xlrdlayer:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      Content:
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/xlrdlayer/lambda.zip'
+  Pandaslayer:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      Content:
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/pandaslayer/lambda.zip'
+  Preprocesslayer:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      Content:
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/preprocesslayer/lambda.zip'
+  JobCreationLambda:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/job-creation/lambda.zip'
+      Description: Creates custom jobs in SageMaker GroundTruth by sending a request.
+      Handler: job-creation.lambda_handler
+      Role: !GetAtt JobCreationLambdaExecutionRole.Arn
+      MemorySize: 512
+      Runtime: python3.8
+      Timeout: 900
+      Layers:  [!Ref Numpylayer, !Ref Pandaslayer, !Ref Boto3layer]
+  KeepjobaliveLambda:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ] 
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/Keep-job-alive/lambda.zip'
+      Description: Relaunches jobs that are older than 10 days and expired.
+      Handler: keep-job-alive.lambda_handler
+      Role: !GetAtt JobCreationLambdaExecutionRole.Arn
+      MemorySize: 128
+      Runtime: python3.8
+      Timeout: 900
+      Layers: [!Ref Pandaslayer, !Ref Boto3layer]
+  KeepjobaliveLambdaSchedule:
+    Type: AWS::Events::Rule
+    Properties:
+      RoleArn: !GetAtt JobCreationLambdaExecutionRole.Arn
+      ScheduleExpression: "rate(5 minutes)"
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt KeepjobaliveLambda.Arn
+          Id: !Sub
+                - ${StackID}-Keepjobalive-1
+                - StackID: !Select [ 2, !Split [ "/", !Ref 'AWS::StackId' ] ]
+  KeepjobaliveLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref KeepjobaliveLambda
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt KeepjobaliveLambdaSchedule.Arn
+  LoopLambda:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/loop/lambda.zip'
+      Description: Reads the output manifest and if certain conditions are met, recreates source-csv to re-trigger the job-creation AWS Lambda function.
+      Handler: loop.lambda_handler
+      Role: !GetAtt FeedbackLoopLambdaExecutionRole.Arn
+      MemorySize: 512
+      Runtime: python3.8
+      Timeout: 900
+      Layers: [ !Ref Pandaslayer, !Ref Boto3layer ]
+  PreprocessLambda:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/preprocess/lambda.zip'
+      Description: Ingests bulk patient data, partitions it into individual patient files, generates plots for files, and saves files to an S3 bucket.
+      Handler: preprocess.lambda_handler
+      Role: !GetAtt PreProcessLambdaExecutionRole.Arn
+      MemorySize: 2048
+      Runtime: python3.8
+      Timeout: 900
+      #Layers: [ !Ref Preprocesslayer , !Ref Xlrdlayer]
+      Layers: [ !Ref Pandaslayer, !Ref Mathliblayer, !Ref Xlrdlayer ]
+  SagemakerphcpostprocessLambda:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/sagemaker-phc-2020-11-16-postprocess/lambda.zip'
+      Description: Consolidates conflicting labels.
+      Handler: sagemaker-phc-2020-11-16-postprocess.lambda_handler
+      Role: !GetAtt SageMakerPostprocessLambdaExecutionRole.Arn
+      MemorySize: 128
+      Runtime: python3.8
+      Timeout: 900
+      Layers: [ !Ref Boto3layer ]
+  SagemakerphcpreprocessLambda:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/sagemaker-phc-2020-11-16-preprocess/lambda.zip'
+      Description: Reads in the task input data-object for SageMaker Ground Truth.
+      Handler: sagemaker-phc-2020-11-16-preprocess.lambda_handler
+      Role: !GetAtt SageMakerPreprocessLambdaExecutionRole.Arn
+      MemorySize: 128
+      Runtime: python3.8
+      Timeout: 900
+Outputs:
+  PreProcessLambdaExecutionRoleARN:
+    Value: !GetAtt PreProcessLambdaExecutionRole.Arn
+  JobCreationLambdaExecutionRoleARN:
+    Value: !GetAtt PreProcessLambdaExecutionRole.Arn
+  FeedbackLoopLambdaExecutionRoleARN:
+    Value: !GetAtt PreProcessLambdaExecutionRole.Arn
+  SageMakerPreprocessLambdaExecutionRoleARN:
+    Value: !GetAtt PreProcessLambdaExecutionRole.Arn
+  SageMakerPostprocessLambdaExecutionRoleARN:
+    Value: !GetAtt SageMakerPostprocessLambdaExecutionRole.Arn
+  PreProcessLambdaExecutionRole:
+    Value: !Ref PreProcessLambdaExecutionRole
+  JobCreationLambdaExecutionRole:
+    Value: !Ref PreProcessLambdaExecutionRole
+  FeedbackLoopLambdaExecutionRole:
+    Value: !Ref PreProcessLambdaExecutionRole
+  SageMakerPreprocessLambdaExecutionRole:
+    Value: !Ref PreProcessLambdaExecutionRole
+  SageMakerPostprocessLambdaExecutionRole:
+    Value: !Ref SageMakerPostprocessLambdaExecutionRole
+  LambdaZipsBucket:
+    Value: !If [ CreateDestBucket, !Ref LambdaZipsBucket, !Ref DestinationBucket ]
+  MatplotlibLayerName:
+    Value: !Ref Mathliblayer
+  NumpyLayerName:
+    Value: !Ref Numpylayer
+  PandasLayerName:
+    Value: !Ref Pandaslayer
+  PreProcessLayerName:
+    Value: !Ref Preprocesslayer
+  JobCreationLambdaName:
+    Value: !Ref JobCreationLambda
+  FeedbackLoopLambdaName:
+    Value: !Ref LoopLambda
+  PreprocessLambdaName:
+    Value: !Ref PreprocessLambda
+  SageMakerPreprocessLambdaName:
+    Value: !Ref SagemakerphcpreprocessLambda
+  SageMakerPostprocessLambdaName:
+    Value: !Ref SagemakerphcpostprocessLambda
+  XLRDLayerName:
+    Value: !Ref Xlrdlayer
+  ApplyBucketNotificationFunctionARN:
+    Value: !GetAtt ApplyBucketNotificationFunction.Arn
+  JobCreationLambdaARN:
+    Value: !GetAtt JobCreationLambda.Arn
+  FeedbackLoopLambdaARN:
+    Value: !GetAtt LoopLambda.Arn
+  PreprocessLambdaARN:
+    Value: !GetAtt PreprocessLambda.Arn
+  ProcessingBucketARN:
+    Value: !GetAtt ProcessingBucket.Arn
+  LandingBucketARN:
+    Value: !GetAtt LandingBucket.Arn
+  ProcessingBucket:
+    Value: !Ref ProcessingBucket
+  LandingBucket:
+    Value: !Ref LandingBucket
+
+

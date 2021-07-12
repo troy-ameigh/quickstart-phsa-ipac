@@ -1,84 +1,70 @@
-//TODO: Add in the steps for creating the user pool and the workload labling
-// If no preperation is required, remove all content from here
-= Required data schema:
+== Data schema requirements
 
-We expect an Excel file with 2 sheets in the Landing-Zone bucket to start the process:
+Bulk patient data ingested by the deployment must be in a Microsoft Excel spreadsheet (.xlsx). The spreadsheet must contain three sheets, each containing the data shown in the following lists. Items in bold are required. All others are optional but recommended.
 
-== The first sheet
-It needs to contain the following information. Please see below the column names and their expected datatype.
+=== Sheet 1
+==== Int64 data
+* *encntr_num*: Encounter number (required).
+* *mrn*: Medical record number (required).
+* encntr_id: Encounter ID.
+* collection_date_id: Blood collection date.
+* loc_bed_desc_src_at_collection: Patient bed number at blood collection.
+* transfer_in_to_collect: Number of days from nursing unit admission date to blood collection date.
+* transfer_out_to_collect: Number of days from blood collection date to patient discharge date.
+* ce_dynamic_label_id: Internal ID.
+* line_tube_drain_insertion_seq: Central line insertion sequence.
+* line_insert_to_collection: Number of days from central line insertion date to blood collection date.
+* birth_date_id: Patient date of birth.
+* line_remove_to_collect: Number of days from central line removal to blood collection date in days
+* bc_phn: Provincial Health Care health number
 
-Field marked in *bold* are mandatory, the rest of the fields are recommended, but optional.
+==== String data
+* nursing_unit_short_desc: Nursing unit code.
+* facility_name_src: |Hospital or clinic name at blood collection.
+* encntr_type_desc_src_at_collection: Encounter type at blood collection.
+* clinical_event_code_desc_src: Collection type. Enter `Blood culture.`
+* loc_room_desc_src_at_collection: Patient room information at the blood collection.
+* disch_disp_desc_src: Discharge disposition.
+* lab_result: Lab result of the blood collection, either `Positive` or `Negative`.
+* med_service_desc_src_at_collection: Medical service at collection.
+* nursing_unit_desc_at_collection: Nursing unit name.
+* nursing_unit_short_desc_at_collection: Nursing unit code description.
+* organism_1_desc_src: First organism found in blood collection.
+* organism_2_desc_src: Second organism found in blood collection.
+* organism_3_desc_src: Third organism found in blood collection.
+* result_interpretation_desc_src: Lab result interpretation.
+* specimen_type_desc_src: Lab specimen type description.
+* doc_set_name_result: Label for central line.
+* first_catheter_type_result: Central line catheter type.
+* first_site_result: Body site of catheter insertion.
+* name_last: Patient last name.
+* name_first: Patient first name.
+* gender_desc_src: Patient gender.
+* home_addr_patient_postal_code_ forward_sortation_area: First three digits of patient postal code.
 
-=== Int64 fields
+==== DateTime data (YYYY/MM/DD)
+* *admit_dt_tm*: Hospital admission date (required).
+* *disch_dt_tm*: Hospital discharge date (required).
+* *collection_dt_tm*: Blood collection date (required).
+* *beg_effective_dt_tm*: Nursing unit admission date (required).
+* *end_effective_dt_tm*: Nursing unit discharge date (required).
+* *first_activity_start_dt_tm*: Central line insertion date (required).
+* *last_activity_end_dt_tm*: Central line removal date (required).
 
--  *encntr_num* (Encounter number)
--  *mrn* (Medical Record Number)
--  encntr_id (Encouner ID)
--  collection_date_id (Blood collection date)
--  loc_bed_desc_src_at_collection (Patient's bed number at the blood collection)
--  transfer_in_to_collect (Nursing unit admission date to blood collection date in days)
--  transfer_out_to_collect (Blood collection date to patient's discharge date in days)
--  ce_dynamic_label_id (Internal ID)
--  line_tube_drain_insertion_seq (Central line insertion sequence)
--  line_insert_to_collection (Central line insertion date to blood collection date in days)
--  birth_date_id (Patient's DOB)
--  line_remove_to_collect ((Central line removal date to blood collection date in days))
--  bc_phn (Provincial Health Number)
+=== Sheet 2
+==== Int64 data
+* *mrn*: Medical record number (required).
+* *result_value*: Temperature reading (required).
 
-=== String fields
+==== DateTime data (YYYY/MM/DD)
+* *event_end_dt_tm*: Temperature reading date and time (required).
 
--  nursing_unit_short_desc (Nursing unit code)
--  facility_name_src (Hospital or clinic name at blood collection)
--  encntr_type_desc_src_at_collection (Encounter type at blood collection)
--  clinical_event_code_desc_src (Collection type = "Blood culture")
--  loc_room_desc_src_at_collection (Patient's room information at the blood collection)
--  disch_disp_desc_src (Discharge disposition)
--  lab_result (Lab result of the blood collection: Positive/Negative)
--  med_service_desc_src_at_collection (Medical Service at collection)
--  nursing_unit_desc_at_collection (Nursing unit name)
--  nursing_unit_short_desc_at_collection (Nursing unit code description)
--  organism_1_desc_src (1st organism found in blood collection)
--  organism_2_desc_src (2nd organism found in blood collection)
--  organism_3_desc_src (3rd organism found in blood collection)
--  result_interpretation_desc_src (Lab result interpretation)
--  specimen_type_desc_src (Lab speciment type description)
--  doc_set_name_result (Lable for "Central line")
--  first_catheter_type_result (Central line catheter type)
--  first_site_result (Body Site of catheter insertion)
--  name_last (Patient's last name)
--  name_first (Patient's first name)
--  gender_desc_src (Gender information)
--  home_addr_patient_postal_code_forward_sortation_area (First three digits of Patient's postal code)
+=== Sheet 3
+==== Int64 data
+* *encntr_num*: Encounter number (required).
+* encntr_id: Encounter ID.
+* *mrn*: Medical record number (required).
 
-=== DateTime Columns (YYYY/MM/DD)
-
--  *admit_dt_tm* (Hospital admission date)
--  *disch_dt_tm* (Hospital discharge date)
--  *collection_dt_tm* (Blood collection date)
--  *beg_effective_dt_tm* (Nursing unit admission date)
--  *end_effective_dt_tm* (Nursing unit discharge date)
--  *first_activity_start_dt_tm* (Central line insertion date)
--  *last_activity_end_dt_tm* (Central line removal date)
-
-
-== The second sheet
- 
-=== Int64 fields
--  *MRN* (Medical Record number)
--  *result_value* (Temperature reading value)
-
-=== DateTime Columns (YYYY/MM/DD/)
--  *event_end_dt_tm* (Temperature reading date and time information)
-
-
-=== Prepare your AWS account
-
-_Describe any setup required in the AWS account prior to template launch_
-
-=== Prepare your {partner-company-name} account
-
-_Describe any setup required in the partner portal/account prior to template launch_
-
-=== Prepare for the deployment
-
-_Describe any preparation required to complete the product build, such as obtaining licenses or placing files in S3_
+==== String data
+* accession_nbr
+* organism_desc_src

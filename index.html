@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.15">
-<title>Digital Products Providence Health Care on the AWS Cloud</title>
+<title>Providence Health Care IPAC-CLABSI on the AWS Cloud</title>
 <style>
 
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -182,7 +182,7 @@ p a>code:hover{color:rgba(0,0,0,.9)}
   padding-top:0;
   overflow:hidden;
   background:#283e5b;
-  border-bottom: 4px solid #435c7c;
+  /* border-bottom: 4px solid #435c7c; */
   width:320px;
   height:154px;
   top:0;
@@ -411,7 +411,7 @@ span.icon>.fa{cursor:default}
 a span.icon>.fa{cursor:inherit}
 .admonitionblock td.icon [class^="fa icon-"]{font-size:2.5em;text-shadow:1px 1px 2px rgba(0,0,0,.5);cursor:default}
 .admonitionblock td.icon .icon-note::before{content:"\f05a";color:#19407c}
-.admonitionblock td.icon .icon-tip::before{content:"\f0eb";text-shadow:1px 1px 2px rgba(155,155,0,.8);color:#111}
+.admonitionblock td.icon .icon-tip::before{content:"\f0eb";color: rgb(3, 87, 21);}
 .admonitionblock td.icon .icon-warning::before{content:"\f071";color:#bf6900}
 .admonitionblock td.icon .icon-caution::before{content:"\f06d";color:#bf3400}
 .admonitionblock td.icon .icon-important::before{content:"\f06a";color:#bf0000}
@@ -747,8 +747,43 @@ p {
   font-weight  : 300 !important;
 }
 
-#toc.toc2 #toctitle{
-  background-image: url('images/AWS-Logo.svg');
+/* image layout */
+#toc.toc2 #toctitle {
+  background-image: url("images/AWS-Logo.svg");
+  background-repeat: no-repeat;
+  background-size: 50%;
+  background-position: center;
+  width: auto;
+  height: 15%;
+}
+
+/* Left Navbar size */
+#toc.toc2 {
+  width: 17%;
+  min-width: 15em;
+}
+
+/* auto width for main page */
+body.toc2 {
+  padding-left: 22%;
+  padding-right: 2%;
+}
+
+/* hide left nav bar if page size is smaller than 767px */
+@media screen and (max-width: 767px) {
+  #toc {
+      display: none !important;
+  }
+  body.toc2 {
+    padding-left: 1%;
+    padding-right: 1%;
+    position: relative;
+  }
+
+  #content {
+    padding-left: 2%;
+    padding-right: 2%;
+  }
 }
 
 /* QS Tables */
@@ -790,14 +825,7 @@ p.footer-text a{color:#d7d8d8}
 <div id="toctitle"></div>
 <ul class="sectlevel1">
 <li><a href="#_overview">Overview</a></li>
-<li><a href="#_digital_products_providence_health_care_on_aws">Digital Products Providence Health Care on AWS</a></li>
-<li><a href="#_background"><strong>Background</strong></a></li>
-<li><a href="#_software"><strong>Software</strong></a>
-<ul class="sectlevel2">
-<li><a href="#_components">Components</a></li>
-<li><a href="#_decision_process">Decision process</a></li>
-</ul>
-</li>
+<li><a href="#_providence_health_care_ipac_clabsi_on_aws">Providence Health Care IPAC-CLABSI on AWS</a></li>
 <li><a href="#_aws_costs">AWS costs</a></li>
 <li><a href="#_software_licenses">Software licenses</a></li>
 <li><a href="#_architecture">Architecture</a></li>
@@ -808,51 +836,42 @@ p.footer-text a{color:#d7d8d8}
 <li><a href="#_technical_requirements">Technical requirements</a></li>
 </ul>
 </li>
-<li><a href="#_required_data_schema">Required data schema:</a>
-<ul class="sectlevel1">
-<li><a href="#_the_first_sheet">The first sheet</a>
+<li><a href="#_data_schema_requirements">Data schema requirements</a>
 <ul class="sectlevel2">
-<li><a href="#_int64_fields">Int64 fields</a></li>
-<li><a href="#_string_fields">String fields</a></li>
-<li><a href="#_datetime_columns_yyyymmdd">DateTime Columns (YYYY/MM/DD)</a></li>
-</ul>
-</li>
-<li><a href="#_the_second_sheet">The second sheet</a>
-<ul class="sectlevel2">
-<li><a href="#_int64_fields_2">Int64 fields</a></li>
-<li><a href="#_datetime_columns_yyyymmdd_2">DateTime Columns (YYYY/MM/DD/)</a></li>
-<li><a href="#_prepare_your_aws_account">Prepare your AWS account</a></li>
-<li><a href="#_prepare_your_providence_health_care_account">Prepare your Providence Health Care account</a></li>
-<li><a href="#_prepare_for_the_deployment">Prepare for the deployment</a></li>
+<li><a href="#_sheet_1">Sheet 1</a></li>
+<li><a href="#_sheet_2">Sheet 2</a></li>
+<li><a href="#_sheet_3">Sheet 3</a></li>
 </ul>
 </li>
 <li><a href="#_deployment_steps">Deployment steps</a>
 <ul class="sectlevel2">
 <li><a href="#_sign_in_to_your_aws_account">Sign in to your AWS account</a></li>
 <li><a href="#_launch_the_quick_start">Launch the Quick Start</a></li>
-<li><a href="#_parameters_for_deploying_into_a_new_vpc">Parameters for deploying into a new VPC</a></li>
-</ul>
-</li>
 <li><a href="#_test_the_deployment">Test the deployment</a></li>
 <li><a href="#_post_deployment_steps">Post-deployment steps</a></li>
-<li><a href="#_best_practices_for_using_ipac_clabsi_on_aws">Best practices for using IPAC-CLABSI on AWS</a></li>
+<li><a href="#_best_practices_for_reviewers_using_ipac_clabsi_on_aws">Best practices for reviewers using IPAC-CLABSI on AWS</a></li>
 <li><a href="#_security">Security</a></li>
-<li><a href="#_other_useful_information">Other useful information</a></li>
+</ul>
+</li>
 <li><a href="#_faq">FAQ</a></li>
 <li><a href="#_troubleshooting">Troubleshooting</a></li>
+<li><a href="#_customer_responsibility">Customer responsibility</a></li>
+<li><a href="#_parameter_reference">Parameter reference</a>
+<ul class="sectlevel2">
+<li><a href="#_launch_into_a_new_vpc">Launch into a new VPC</a></li>
+</ul>
+</li>
 <li><a href="#_send_us_feedback">Send us feedback</a></li>
 <li><a href="#_quick_start_reference_deployments">Quick Start reference deployments</a></li>
 <li><a href="#_github_repository">GitHub repository</a></li>
 <li><a href="#_notices">Notices</a></li>
-</ul>
-</li>
 </ul>
 </div>
 </div>
 <div id="content">
 <div id="preamble">
 <div class="sectionbody">
-<h2 id="_digital_products_providence_health_care_on_the_aws_cloud" class="discrete text-center">Digital Products Providence Health Care on the AWS Cloud</h2>
+<h2 id="_providence_health_care_ipac_clabsi_on_the_aws_cloud" class="discrete text-center">Providence Health Care IPAC-CLABSI on the AWS Cloud</h2>
 <h2 id="_quick_start_reference_deployment" class="discrete text-left text-center">Quick Start Reference Deployment</h2>
 <div class="imageblock text-center">
 <div class="content">
@@ -860,9 +879,9 @@ p.footer-text a{color:#d7d8d8}
 </div>
 </div>
 <div class="paragraph text-center">
-<p><strong>June 2021</strong><br>
+<p><strong>July 2021</strong><br>
 <em>Zoltan Bozoky, Sahand Azad, Madana Krishnan, and Soyean Kim, Providence Health Care</em><br>
-<em>Troy Ameigh, AWS Intergration and Automation Team</em></p>
+<em>Troy Ameigh, AWS Integration and Automation team</em></p>
 </div>
 <div class="admonitionblock tip text-left">
 <table>
@@ -889,7 +908,7 @@ report bugs, or submit feature ideas for this Quick Start.
 <p>This guide provides instructions for deploying the IPAC-CLABSI Quick Start reference architecture on the AWS Cloud.</p>
 </div>
 <div class="paragraph">
-<p>This Quick Start is for users who are in health care, and life sciences organizations.</p>
+<p>This Quick Start is for health care teams that want to scale and expedite central line-associated bloodstream infection (CLABSI) reviews.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -906,78 +925,10 @@ Amazon may share user-deployment information with the AWS Partner that collabora
 </div>
 </div>
 <div class="sect1">
-<h2 id="_digital_products_providence_health_care_on_aws">Digital Products Providence Health Care on AWS</h2>
-<div class="sectionbody">
-
-</div>
-</div>
-<div class="sect1">
-<h2 id="_background"><strong>Background</strong></h2>
+<h2 id="_providence_health_care_ipac_clabsi_on_aws">Providence Health Care IPAC-CLABSI on AWS</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>A central line-associated bloodstream infection (CLABSI) is a serious infection that occurs when germs enter the bloodstream through a catheter (tube) that healthcare providers often place in a large vein in the neck, chest, or groin to give medication or fluids or to collect blood for medical tests.</p>
-</div>
-<div class="paragraph">
-<p>Because CLABSI can be prevented through proper insertion techniques and management of the central line, surveillance systems are crucial in any inpatient location where denominator data can be collected, which can include
-critical/intensive care units (ICU), specialty care areas (SCA), neonatal units including neonatal intensive care units (NICUs), step down units, wards, and long term care units.</p>
-</div>
-<div class="paragraph">
-<p>Monitoring CLABSI levels and identifying individual cases, associated nursing units and outbreaks are mandatory, but also important to reduce harm and to improve the quality of patient safety. Our tool provides an interface to help the process.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_software"><strong>Software</strong></h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Our application provides an interface for Infection Control Practitioners (ICPs), Physicians and Epidemiologists to review potential CLABSI cases and classify the information. It is a requirement that each patient undergoes at least two round of reviews, one from ICPs and one from the Physician group.</p>
-</div>
-<div class="sect2">
-<h3 id="_components">Components</h3>
-<div class="sect3">
-<h4 id="_input_information">Input information</h4>
-<div class="paragraph">
-<p>Bulk patient information is required on potential CLABSI cases for a reporting period. A filter for patient who underwent <strong>central line insertion</strong> and developed a <strong>blood stream infection</strong> is usually necessary to reduce the number of patient record that needs review.</p>
-</div>
-<div class="paragraph">
-<p>The application requires Excel file as an input with two sheets.<br>
-1) 1st sheet: Patient information. Each record corresponds to a positive blood collection event.<br>
-2) 2nd sheet: Body temperature information. Depending on the pathogen, blood stream infections often associated with fever. Each record of this sheet represents a time point when temperature reading was done.<br></p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_pipeline">Pipeline</h4>
-<div class="paragraph">
-<p>The application consists of multiple processing AWS lambda functions that process the input information and prepare the data for the manual review process, as well as post review processing steps. All data in between processing steps are stored as S3 objects.<br></p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/IPAC_architecture_diagram_v4.png" alt="IPAC architecture diagram v4">
-</div>
-<div class="title">Figure 1. IPAC-CLABSI architecture diagram</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_user_interface">User interface</h4>
-<div class="paragraph">
-<p>The application utilizes AWS SageMaker Ground Truth as a user interface. A single Ground Truth labeling / reviewing job provides all information about a patient disregard of having one or multiple CLABSI events. The decision is done on the patient level.</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_result">Result</h4>
-<div class="paragraph">
-<p>The application accumulates all decision information from the reviewer team and genarates and aggregated data file. This file contains all input data with the decision made during the review process along with additional information like reasons of the decision, type and subtype classifications.</p>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_decision_process">Decision process</h3>
-<div class="imageblock">
-<div class="content">
-<img src="images/ipac_clabsi_decison_process.png" alt="Decision process">
-</div>
-<div class="title">Figure 2. IPAC-CLABSI case review process</div>
-</div>
+<p>This Quick Start deploys Providence Health Care Infection Prevention and Control (IPAC) for CLABSI on the Amazon Web Services (AWS) Cloud. The deployment retrieves bulk patient data in Microsoft Excel format from an on-premises source. AWS Lambda functions transform data into individual infection cases and display these to reviewers using Amazon SageMaker Ground Truth. Infection control practitioners and physicians conduct two rounds of reviews on each case and label those that meet clinical criteria as confirmed CLASBI infections. Reviewers also enter reasons for their decisions in the Ground Truth user interface. Confirmed CLABSI cases, including all data collected during the review process, are stored in Amazon Simple Storage Service (Amazon S3) for reporting.</p>
 </div>
 </div>
 </div>
@@ -1001,7 +952,7 @@ see the pricing pages for each AWS service you use. Prices are subject to change
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-After you deploy the Quick Start, <a href="https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/billing-reports-gettingstarted-turnonreports.html" target="_blank" rel="noopener">create AWS Cost and Usage Reports</a> to deliver billing metrics to an Amazon Simple Storage Service (Amazon S3) bucket in your account. These reports provide cost estimates based on usage throughout each month and aggregate the data at the end of the month. For more information, see <a href="https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/billing-reports-costusage.html" target="_blank" rel="noopener">What are AWS Cost and Usage Reports?</a>
+After you deploy the Quick Start, create <a href="https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/billing-reports-gettingstarted-turnonreports.html" target="_blank" rel="noopener">AWS Cost and Usage Reports</a> to deliver billing metrics to an Amazon Simple Storage Service (Amazon S3) bucket in your account. These reports provide cost estimates based on usage throughout each month and aggregate the data at the end of the month. For more information, see <a href="https://docs.aws.amazon.com/cur/latest/userguide/what-is-cur.html" target="_blank" rel="noopener">What are AWS Cost and Usage Reports?</a>
 </td>
 </tr>
 </table>
@@ -1012,7 +963,7 @@ After you deploy the Quick Start, <a href="https://docs.aws.amazon.com/awsaccoun
 <h2 id="_software_licenses">Software licenses</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>No licenses are required to deploy this Quick Start. All AWS service resources consumed during the launch of the Quick Start incur AWS service usage costs._</p>
+<p>No licenses are required to deploy this Quick Start. You are responsible for the cost of the AWS services and any third-party licenses used while running this Quick Start reference deployment. There is no additional cost for using this Quick Start.</p>
 </div>
 </div>
 </div>
@@ -1020,62 +971,71 @@ After you deploy the Quick Start, <a href="https://docs.aws.amazon.com/awsaccoun
 <h2 id="_architecture">Architecture</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Deploying this Quick Start for a new virtual private cloud (VPC) with
-<strong>default parameters</strong> builds the following <em>Digital Products Providence Health Care</em> environment in the
-AWS Cloud.</p>
+<p>Deploying this Quick Start builds the following IPAC-CLABSI environment in the AWS Cloud.</p>
+</div>
+<div id="architecture1" class="imageblock">
+<div class="content">
+<img src="images/phsa-ipac-architecture-diagram.png" alt="Architecture">
+</div>
+<div class="title">Figure 1. Quick Start architecture for Providence Health Care IPAC-CLABSI on AWS</div>
 </div>
 <div class="paragraph">
-<p><span class="image"><img src="images/IPAC_architecture_diagram_v5.png" alt="image" width="648" height="439"></span></p>
-</div>
-<div class="paragraph">
-<p>Figure 1: Quick Start architecture for <em>{PHC_IPAC_CLABSI}</em> on AWS</p>
-</div>
-<div class="paragraph">
-<p>As shown in Figure 1, the Quick Start sets up the following:</p>
+<p>As shown in <a href="#architecture1">Figure 1</a>, the Quick Start sets up the following:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Bulk data extraction ETL deposits data into network shared drive.</p>
+<p>AWS Storage Gateway to retrieve bulk patient data from an on-premises source and deposit it into an Amazon Simple Storage Service (Amazon S3) bucket.</p>
 </li>
 <li>
-<p>Storage gateway automatically picks up data.</p>
+<p>Four Amazon S3 buckets to store the following artifacts.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Bulk patient data.</p>
 </li>
 <li>
-<p>Synchronization over secure connection.</p>
+<p>Partitioned data.</p>
 </li>
 <li>
-<p>Bulk data arrives into a landing bucket.</p>
+<p>Output data from Amazon SageMaker Ground Truth.</p>
 </li>
 <li>
-<p>Separation of individual patient information.</p>
+<p>Confirmed infection cases for reporting.</p>
+</li>
+</ul>
+</div>
 </li>
 <li>
-<p>Labeling Jobs are created usign SageMaker GroundTruth</p>
+<p>Three AWS Lambda functions.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>A function to retrieve and partition bulk data into individual review cases and save them to an S3 bucket.</p>
 </li>
 <li>
-<p>Review job preparation</p>
+<p>A function to process the input manifest for GroundTruth. It retrieves data from the partitioned data S3 bucket and transforms it into the JavaScript Object Notation (JSON) format required by Ground Truth.</p>
 </li>
 <li>
-<p>Review job release</p>
+<p>A function to retrieve and process Ground Truth output data. It sends cases with no decision to the partitioned data S3 bucket and initiates another review job in Ground Truth. It deposits cases labeled as confirmed infections to a reporting S3 bucket.</p>
+</li>
+</ul>
+</div>
 </li>
 <li>
-<p>Business user review the case</p>
+<p>Ground Truth to provide the user interface.</p>
 </li>
 <li>
-<p>Decision gets deposited into a bucket</p>
+<p>AWS Key Management Service (AWS KMS) to encrypt data (not shown).</p>
 </li>
 <li>
-<p>Post-processing function checks decision</p>
+<p>Amazon Cognito to provide authentication, authorization, and user management for the Ground Truth user interface (not shown).</p>
 </li>
 <li>
-<p>In case of no decision, data goes back for another round of review</p>
+<p>AWS Identity and Access Management (IAM) to enforce the principle of least privilege on each processing component (not shown).</p>
 </li>
 <li>
-<p>Identified CLABSI cases go in to the reporting bucket</p>
-</li>
-<li>
-<p>AWS CLI is used to retrieve the patient data for reporting</p>
+<p>Amazon CloudWatch Logs to monitor Storage Gateway for errors (not shown).</p>
 </li>
 </ul>
 </div>
@@ -1093,7 +1053,7 @@ and <a href="https://aws.amazon.com/training/" target="_blank" rel="noopener">AW
 deploy, and operate your infrastructure and applications on the AWS Cloud.</p>
 </div>
 <div class="paragraph">
-<p>This Quick Start also assumes familiarity with AWS CloudFormations , SageMaker GroundTruth, Lambdas, Cloudwatch, IAM, Roles, S3</p>
+<p>This Quick Start assumes familiarity with basic concepts in networking, database operations, and data encryption. Familiarity with the concept of <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/sms.html">data labeling</a> in Amazon SageMaker Ground Truth is useful.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1113,7 +1073,7 @@ deploy, and operate your infrastructure and applications on the AWS Cloud.</p>
 <div class="sect3">
 <h4 id="_resource_quotas">Resource quotas</h4>
 <div class="paragraph">
-<p>If necessary, request <a href="https://console.aws.amazon.com/servicequotas/home?region=us-east-2#!/" target="_blank" rel="noopener">service quota increases</a> for the following resources. You might request quota increases to avoid exceeding the default limits for any resources that are shared across multiple deployments. The <a href="https://console.aws.amazon.com/servicequotas/home?region=us-east-2#!/" target="_blank" rel="noopener">Service Quotas console</a> displays your usage and quotas for some aspects of some services. For more information, see <a href="https://docs.aws.amazon.com/servicequotas/latest/userguide/intro.html" target="_blank" rel="noopener">What is Service Quotas?</a> and <a href="https://docs.aws.amazon.com/general/latest/gr/aws_service_limits.html" target="_blank" rel="noopener">AWS service quotas</a>.</p>
+<p>If necessary, request <a href="https://console.aws.amazon.com/servicequotas/home?region=us-east-2#!/" target="_blank" rel="noopener">service quota increases</a> for the following resources. You might need to request increases if your existing deployment currently uses these resources and if this Quick Start deployment could result in exceeding the default quotas. The <a href="https://console.aws.amazon.com/servicequotas/home?region=us-east-2#!/" target="_blank" rel="noopener">Service Quotas console</a> displays your usage and quotas for some aspects of some services. For more information, see <a href="https://docs.aws.amazon.com/servicequotas/latest/userguide/intro.html" target="_blank" rel="noopener">What is Service Quotas?</a> and <a href="https://docs.aws.amazon.com/general/latest/gr/aws_service_limits.html" target="_blank" rel="noopener">AWS service quotas</a>.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1128,8 +1088,8 @@ deploy, and operate your infrastructure and applications on the AWS Cloud.</p>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Lambdas</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">AWS Lambda functions</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Security groups</p></td>
@@ -1140,12 +1100,12 @@ deploy, and operate your infrastructure and applications on the AWS Cloud.</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">SageMaker Ground Truth Label Job</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SageMaker Ground Truth labeling jobs</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">50-100/day</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">S3 buckets</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4</p></td>
 </tr>
 </tbody>
 </table>
@@ -1153,10 +1113,7 @@ deploy, and operate your infrastructure and applications on the AWS Cloud.</p>
 <div class="sect3">
 <h4 id="_supported_regions">Supported Regions</h4>
 <div class="paragraph">
-<p>This Quick Start supports all aws regions, see the full list for more info.</p>
-</div>
-<div class="paragraph">
-<p>Full list: <a href="https://docs.aws.amazon.com/general/latest/gr/rande.html" class="bare">https://docs.aws.amazon.com/general/latest/gr/rande.html</a></p>
+<p>This Quick Start is available in all AWS Regions. For more information, see <a href="https://docs.aws.amazon.com/general/latest/gr/rande.html">AWS service endpoints</a>.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -1180,247 +1137,228 @@ Certain Regions are available on an opt-in basis. For more information, see <a h
 </div>
 </div>
 </div>
-<h1 id="_required_data_schema" class="sect0">Required data schema:</h1>
-<div class="openblock partintro">
-<div class="content">
-We expect an Excel file with 2 sheets in the Landing-Zone bucket to start the process:
-</div>
-</div>
 <div class="sect1">
-<h2 id="_the_first_sheet">The first sheet</h2>
+<h2 id="_data_schema_requirements">Data schema requirements</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>It needs to contain the following information. Please see below the column names and their expected datatype.</p>
-</div>
-<div class="paragraph">
-<p>Field marked in <strong>bold</strong> are mandatory, the rest of the fields are recommended, but optional.</p>
+<p>Bulk patient data ingested by the deployment must be in a Microsoft Excel spreadsheet (.xlsx). The spreadsheet must contain three sheets, each containing the data shown in the following lists. Items in bold are required. All others are optional but recommended.</p>
 </div>
 <div class="sect2">
-<h3 id="_int64_fields">Int64 fields</h3>
+<h3 id="_sheet_1">Sheet 1</h3>
+<div class="sect3">
+<h4 id="_int64_data">Int64 data</h4>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>encntr_num</strong> (Encounter number)</p>
+<p><strong>encntr_num</strong>: Encounter number (required).</p>
 </li>
 <li>
-<p><strong>mrn</strong> (Medical Record Number)</p>
+<p><strong>mrn</strong>: Medical record number (required).</p>
 </li>
 <li>
-<p>encntr_id (Encouner ID)</p>
+<p>encntr_id: Encounter ID.</p>
 </li>
 <li>
-<p>collection_date_id (Blood collection date)</p>
+<p>collection_date_id: Blood collection date.</p>
 </li>
 <li>
-<p>loc_bed_desc_src_at_collection (Patient&#8217;s bed number at the blood collection)</p>
+<p>loc_bed_desc_src_at_collection: Patient bed number at blood collection.</p>
 </li>
 <li>
-<p>transfer_in_to_collect (Nursing unit admission date to blood collection date in days)</p>
+<p>transfer_in_to_collect: Number of days from nursing unit admission date to blood collection date.</p>
 </li>
 <li>
-<p>transfer_out_to_collect (Blood collection date to patient&#8217;s discharge date in days)</p>
+<p>transfer_out_to_collect: Number of days from blood collection date to patient discharge date.</p>
 </li>
 <li>
-<p>ce_dynamic_label_id (Internal ID)</p>
+<p>ce_dynamic_label_id: Internal ID.</p>
 </li>
 <li>
-<p>line_tube_drain_insertion_seq (Central line insertion sequence)</p>
+<p>line_tube_drain_insertion_seq: Central line insertion sequence.</p>
 </li>
 <li>
-<p>line_insert_to_collection (Central line insertion date to blood collection date in days)</p>
+<p>line_insert_to_collection: Number of days from central line insertion date to blood collection date.</p>
 </li>
 <li>
-<p>birth_date_id (Patient&#8217;s DOB)</p>
+<p>birth_date_id: Patient date of birth.</p>
 </li>
 <li>
-<p>line_remove_to_collect Central line removal date to blood collection date in days</p>
+<p>line_remove_to_collect: Number of days from central line removal to blood collection date in days</p>
 </li>
 <li>
-<p>bc_phn (Provincial Health Number)</p>
+<p>bc_phn: Provincial Health Care health number</p>
 </li>
 </ul>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_string_fields">String fields</h3>
+<div class="sect3">
+<h4 id="_string_data">String data</h4>
 <div class="ulist">
 <ul>
 <li>
-<p>nursing_unit_short_desc (Nursing unit code)</p>
+<p>nursing_unit_short_desc: Nursing unit code.</p>
 </li>
 <li>
-<p>facility_name_src (Hospital or clinic name at blood collection)</p>
+<p>facility_name_src: |Hospital or clinic name at blood collection.</p>
 </li>
 <li>
-<p>encntr_type_desc_src_at_collection (Encounter type at blood collection)</p>
+<p>encntr_type_desc_src_at_collection: Encounter type at blood collection.</p>
 </li>
 <li>
-<p>clinical_event_code_desc_src (Collection type = "Blood culture")</p>
+<p>clinical_event_code_desc_src: Collection type. Enter <code>Blood culture.</code></p>
 </li>
 <li>
-<p>loc_room_desc_src_at_collection (Patient&#8217;s room information at the blood collection)</p>
+<p>loc_room_desc_src_at_collection: Patient room information at the blood collection.</p>
 </li>
 <li>
-<p>disch_disp_desc_src (Discharge disposition)</p>
+<p>disch_disp_desc_src: Discharge disposition.</p>
 </li>
 <li>
-<p>lab_result (Lab result of the blood collection: Positive/Negative)</p>
+<p>lab_result: Lab result of the blood collection, either <code>Positive</code> or <code>Negative</code>.</p>
 </li>
 <li>
-<p>med_service_desc_src_at_collection (Medical Service at collection)</p>
+<p>med_service_desc_src_at_collection: Medical service at collection.</p>
 </li>
 <li>
-<p>nursing_unit_desc_at_collection (Nursing unit name)</p>
+<p>nursing_unit_desc_at_collection: Nursing unit name.</p>
 </li>
 <li>
-<p>nursing_unit_short_desc_at_collection (Nursing unit code description)</p>
+<p>nursing_unit_short_desc_at_collection: Nursing unit code description.</p>
 </li>
 <li>
-<p>organism_1_desc_src (1st organism found in blood collection)</p>
+<p>organism_1_desc_src: First organism found in blood collection.</p>
 </li>
 <li>
-<p>organism_2_desc_src (2nd organism found in blood collection)</p>
+<p>organism_2_desc_src: Second organism found in blood collection.</p>
 </li>
 <li>
-<p>organism_3_desc_src (3rd organism found in blood collection)</p>
+<p>organism_3_desc_src: Third organism found in blood collection.</p>
 </li>
 <li>
-<p>result_interpretation_desc_src (Lab result interpretation)</p>
+<p>result_interpretation_desc_src: Lab result interpretation.</p>
 </li>
 <li>
-<p>specimen_type_desc_src (Lab speciment type description)</p>
+<p>specimen_type_desc_src: Lab specimen type description.</p>
 </li>
 <li>
-<p>doc_set_name_result (Lable for "Central line")</p>
+<p>doc_set_name_result: Label for central line.</p>
 </li>
 <li>
-<p>first_catheter_type_result (Central line catheter type)</p>
+<p>first_catheter_type_result: Central line catheter type.</p>
 </li>
 <li>
-<p>first_site_result (Body Site of catheter insertion)</p>
+<p>first_site_result: Body site of catheter insertion.</p>
 </li>
 <li>
-<p>name_last (Patient&#8217;s last name)</p>
+<p>name_last: Patient last name.</p>
 </li>
 <li>
-<p>name_first (Patient&#8217;s first name)</p>
+<p>name_first: Patient first name.</p>
 </li>
 <li>
-<p>gender_desc_src (Gender information)</p>
+<p>gender_desc_src: Patient gender.</p>
 </li>
 <li>
-<p>home_addr_patient_postal_code_forward_sortation_area (First three digits of Patient&#8217;s postal code)</p>
+<p>home_addr_patient_postal_code_ forward_sortation_area: First three digits of patient postal code.</p>
 </li>
 </ul>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_datetime_columns_yyyymmdd">DateTime Columns (YYYY/MM/DD)</h3>
+<div class="sect3">
+<h4 id="_datetime_data_yyyymmdd">DateTime data (YYYY/MM/DD)</h4>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>admit_dt_tm</strong> (Hospital admission date)</p>
+<p><strong>admit_dt_tm</strong>: Hospital admission date (required).</p>
 </li>
 <li>
-<p><strong>disch_dt_tm</strong> (Hospital discharge date)</p>
+<p><strong>disch_dt_tm</strong>: Hospital discharge date (required).</p>
 </li>
 <li>
-<p><strong>collection_dt_tm</strong> (Blood collection date)</p>
+<p><strong>collection_dt_tm</strong>: Blood collection date (required).</p>
 </li>
 <li>
-<p><strong>beg_effective_dt_tm</strong> (Nursing unit admission date)</p>
+<p><strong>beg_effective_dt_tm</strong>: Nursing unit admission date (required).</p>
 </li>
 <li>
-<p><strong>end_effective_dt_tm</strong> (Nursing unit discharge date)</p>
+<p><strong>end_effective_dt_tm</strong>: Nursing unit discharge date (required).</p>
 </li>
 <li>
-<p><strong>first_activity_start_dt_tm</strong> (Central line insertion date)</p>
+<p><strong>first_activity_start_dt_tm</strong>: Central line insertion date (required).</p>
 </li>
 <li>
-<p><strong>last_activity_end_dt_tm</strong> (Central line removal date)</p>
+<p><strong>last_activity_end_dt_tm</strong>: Central line removal date (required).</p>
 </li>
 </ul>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_the_second_sheet">The second sheet</h2>
-<div class="sectionbody">
 <div class="sect2">
-<h3 id="_int64_fields_2">Int64 fields</h3>
+<h3 id="_sheet_2">Sheet 2</h3>
+<div class="sect3">
+<h4 id="_int64_data_2">Int64 data</h4>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>MRN</strong> (Medical Record number)</p>
+<p><strong>mrn</strong>: Medical record number (required).</p>
 </li>
 <li>
-<p><strong>result_value</strong> (Temperature reading value)</p>
+<p><strong>result_value</strong>: Temperature reading (required).</p>
 </li>
 </ul>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_datetime_columns_yyyymmdd_2">DateTime Columns (YYYY/MM/DD/)</h3>
+<div class="sect3">
+<h4 id="_datetime_data_yyyymmdd_2">DateTime data (YYYY/MM/DD)</h4>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>event_end_dt_tm</strong> (Temperature reading date and time information)</p>
+<p><strong>event_end_dt_tm</strong>: Temperature reading date and time (required).</p>
 </li>
 </ul>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_prepare_your_aws_account">Prepare your AWS account</h3>
-<div class="paragraph">
-<p><em>Describe any setup required in the AWS account prior to template launch</em></p>
-</div>
 </div>
 <div class="sect2">
-<h3 id="_prepare_your_providence_health_care_account">Prepare your Providence Health Care account</h3>
-<div class="paragraph">
-<p><em>Describe any setup required in the partner portal/account prior to template launch</em></p>
+<h3 id="_sheet_3">Sheet 3</h3>
+<div class="sect3">
+<h4 id="_int64_data_3">Int64 data</h4>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>encntr_num</strong>: Encounter number (required).</p>
+</li>
+<li>
+<p>encntr_id: Encounter ID.</p>
+</li>
+<li>
+<p><strong>mrn</strong>: Medical record number (required).</p>
+</li>
+</ul>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_prepare_for_the_deployment">Prepare for the deployment</h3>
-<div class="paragraph">
-<p><em>Describe any preparation required to complete the product build, such as obtaining licenses or placing files in S3</em></p>
+<div class="sect3">
+<h4 id="_string_data_2">String data</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>accession_nbr</p>
+</li>
+<li>
+<p>organism_desc_src</p>
+</li>
+</ul>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_deployment_options">Deployment options</h4>
 <div class="paragraph">
-<p>This Quick Start provides two deployment options:</p>
+<p>This Quick Start provides on deployment option:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Deploy IPAC-CLABSI using CloudFormation consule:</p>
-<div class="ulist">
-<ul>
-<li>
-<p>Upload the pipline.yaml file to Cloudformation service on AWS, and fill in the required paramters per files/paramters.json</p>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p>Deploy IPAC-CLABSI using AWS CLI:</p>
-<div class="ulist">
-<ul>
-<li>
-<p>modify the parameters file given in files/paramters.json with your account information</p>
-</li>
-<li>
-<p>Use the following AWS CLI command:</p>
-<div class="literalblock">
-<div class="content">
-<pre>$ aws cloudformation create-stack --stack-name &lt;your stackname&gt; --template-body &lt;yammel file path&gt; --parameters &lt;parameters.json path&gt; --capabilities CAPABILITY_IAM --region ca-central-1</pre>
-</div>
-</div>
-</li>
-</ul>
-</div>
+<p><strong>Deploy Providence Health Care IPAC-CLABSI into a new VPC</strong>. This option builds a new AWS environment consisting of the VPC, subnets, NAT gateways, security groups, bastion hosts, and other infrastructure components. It then deploys IPAC-CLABSI into this new VPC.</p>
 </li>
 </ul>
 </div>
@@ -1446,6 +1384,118 @@ We expect an Excel file with 2 sheets in the Landing-Zone bucket to start the pr
 </div>
 <div class="sect2">
 <h3 id="_launch_the_quick_start">Launch the Quick Start</h3>
+<div class="paragraph">
+<p>Each deployment takes about 30 minutes to complete.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Sign in to your AWS account, and choose the following option to launch the AWS CloudFormation template. For more information, see <a href="#_deployment_options">Deployment options</a> earlier in this guide.</p>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 66.6666%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><a href="https://fwd.aws/YgwkA?" target="_blank" rel="noopener">Deploy Providence Health Care IPAC-CLABSI into a new VPC on AWS</a></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><a href="https://fwd.aws/EPjJ5?" target="_blank" rel="noopener">View template</a></p></td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p>Check the AWS Region displayed in the upper-right corner of the navigation bar, and change it if necessary. This Region is where IPAC-CLABSI deploys. The template is launched in the ca-central-1 Region by default. For other Regions, see <a href="#_supported_regions">Supported Regions</a> earlier in this guide. Choose <strong>Next</strong>.</p>
+</li>
+<li>
+<p>On the <strong>Create stack</strong> page, keep the default setting for the template URL, and then choose <strong>Next</strong>.</p>
+</li>
+<li>
+<p>On the <strong>Specify stack details</strong> page, change the stack name if needed. Review the parameters for the template. Provide values for the parameters that require input. For all other parameters, review the default settings and customize them as necessary. For details on each parameter, see the <a href="#_parameter_reference">Parameter reference</a> section of this guide. When you finish reviewing and customizing the parameters, choose <strong>Next</strong>.</p>
+</li>
+<li>
+<p>On the <strong>Configure stack options</strong> page, you can <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-resource-tags.html" target="_blank" rel="noopener">specify tags</a> (key-value pairs) for resources in your stack and <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-add-tags.html" target="_blank" rel="noopener">set advanced options</a>. When you’re finished, choose <strong>Next</strong>.</p>
+</li>
+<li>
+<p>On the <strong>Review</strong> page, review and confirm the template settings. Under <strong>Capabilities</strong>, select the two check boxes to acknowledge that the template creates IAM resources and might require the ability to automatically expand macros.</p>
+</li>
+<li>
+<p>Choose <strong>Create stack</strong> to deploy the stack.</p>
+</li>
+<li>
+<p>Monitor the status of the stack. When the status is <strong>CREATE_COMPLETE</strong>, the IPAC-CLABSI deployment is ready.</p>
+</li>
+<li>
+<p>To view the created resources, see the values displayed in the <strong>Outputs</strong> tab for the stack.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_test_the_deployment">Test the deployment</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Upload assets/anonymous_patients.xlsx to the input data S3 bucket to simulate the ingestion of patient data into the system. Labeling jobs should be created in Ground Truth.</p>
+</li>
+<li>
+<p>Complete a review and confirm that the job is relaunched in Ground Truth for labeling by a second reviewer.</p>
+</li>
+<li>
+<p>Submit a job with the label <code>Require further review - revisit patient later</code>. Confirm that the job launches with same number of reviewers required.</p>
+</li>
+<li>
+<p>Confirm that created jobs are recorded in the time sheet.*</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For more information, see <a href="https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_HumanTaskConfig.html#:~:text=TaskTimeLimitInSeconds">HumanTaskConfig</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_post_deployment_steps">Post-deployment steps</h3>
+<div class="paragraph">
+<p>Create a private workforce in your Amazon SageMaker deployment. For more information, see <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/sms-workforce-create-private-console.html">Create a Private Workforce (Amazon SageMaker Console)</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_best_practices_for_reviewers_using_ipac_clabsi_on_aws">Best practices for reviewers using IPAC-CLABSI on AWS</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>If you are not finished reviewing a case but want to save your work and resume later, submit the job with the label <code>Require further review - revisit patient later</code>.</p>
+</li>
+<li>
+<p>Enter your reasons behind a decision in the <strong>Comment</strong> field.</p>
+</li>
+<li>
+<p>You can leave comments on Infection Window Period (IWP) plots (<code>comment_on_iwp</code>) and on pathogens (<code>comment_on_pathogen</code>).</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_security">Security</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://aws.amazon.com/architecture/security-identity-compliance/?cards-all.sort-by=item.additionalFields.sortDate&amp;cards-all.sort-order=desc">Security Best Practices by AWS</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_faq">FAQ</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>Q.</strong> I encountered a <strong>CREATE_FAILED</strong> error when I launched the Quick Start.</p>
+</div>
+<div class="paragraph">
+<p><strong>A.</strong> If AWS CloudFormation fails to create the stack, relaunch the template with <strong>Rollback on failure</strong> set to <strong>Disabled</strong>. This setting is under <strong>Advanced</strong> in the AWS CloudFormation console on the <strong>Configure stack options</strong> page. With this setting, the stack’s state is retained, and the instance keeps running so that you can troubleshoot the issue. (For Windows, look at the log files in <code>%ProgramFiles%\Amazon\EC2ConfigService</code> and <code>C:\cfn\log</code>.)</p>
+</div>
 <div class="admonitionblock warning">
 <table>
 <tr>
@@ -1453,57 +1503,44 @@ We expect an Excel file with 2 sheets in the Landing-Zone bucket to start the pr
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-If you’re deploying IPAC-CLABSI into an existing VPC, make sure that your VPC has two private subnets in different Availability Zones for the workload instances and that the subnets aren’t shared. This Quick Start doesn’t support <a href="https://docs.aws.amazon.com/vpc/latest/userguide/vpc-sharing.html" target="_blank" rel="noopener">shared subnets</a>. These subnets require <a href="https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html" target="_blank" rel="noopener">NAT gateways</a> in their route tables to allow the instances to download packages and software without exposing them to the internet. Also make sure that the domain name option in the DHCP options is configured as explained in <a href="http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_DHCP_Options.html" target="_blank" rel="noopener">DHCP options sets</a>. You provide your VPC settings when you launch the Quick Start.
+When you set <strong>Rollback on failure</strong> to <strong>Disabled</strong>, you continue to incur AWS charges for this stack. Delete the stack when you finish troubleshooting.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>Each deployment takes about 30 minutes to complete.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Sign in to your AWS account, and choose one of the following options to launch the AWS CloudFormation template. For help with choosing an option, see <a href="#_deployment_options">Deployment options</a> earlier in this guide.</p>
-</li>
-</ol>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 75%;">
-<col style="width: 25%;">
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><a href="http://qs_launch_permalink" target="_blank" rel="noopener">Deploy IPAC-CLABSI into a new VPC on AWS</a></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><a href="http://qs_template_permalink" target="_blank" rel="noopener">View template</a></p></td>
-</tr>
-<tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><a href="http://qs_launch_permalink" target="_blank" rel="noopener">Deploy IPAC-CLABSI into an existing VPC on AWS</a></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><a href="http://qs_template_permalink" target="_blank" rel="noopener">View template</a></p></td>
-</tr>
-</tbody>
-</table>
-<div class="olist arabic">
-<ol class="arabic" start="2">
-<li>
-<p>Check the AWS Region that’s displayed in the upper-right corner of the navigation bar, and change it if necessary. This Region is where the network infrastructure for IPAC-CLABSI is built. The template is launched in the ca-central-1 Region by default. For other choices, see <a href="#_supported_regions">Supported Regions</a> earlier in this guide.</p>
-</li>
-</ol>
-</div>
-<div class="olist arabic">
-<ol class="arabic" start="3">
-<li>
-<p>On the <strong>Create stack</strong> page, keep the default setting for the template URL, and then choose <strong>Next</strong>.</p>
-</li>
-<li>
-<p>On the <strong>Specify stack details</strong> page, change the stack name if needed. Review the parameters for the template. Provide values for the parameters that require input. For all other parameters, review the default settings and customize them as necessary. For details on each parameter, see the <a href="#_parameter_reference">Parameter reference</a> section of this guide. When you finish reviewing and customizing the parameters, choose <strong>Next</strong>.</p>
-</li>
-</ol>
+<p>For more information, see <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/troubleshooting.html" target="_blank" rel="noopener">Troubleshooting AWS CloudFormation</a>.</p>
 </div>
 <div class="paragraph">
-<p>In the following tables, parameters are listed by category and described separately for the deployment options. When you finish reviewing and customizing the parameters, choose <strong>Next</strong>.</p>
+<p><strong>Q.</strong> I encountered a size-limitation error when I deployed the AWS CloudFormation templates.</p>
 </div>
+<div class="paragraph">
+<p><strong>A.</strong> Launch the Quick Start templates from the links in this guide or from another S3 bucket. If you deploy the templates from a local copy on your computer or from a location other than an S3 bucket, you might encounter template-size limitations. For more information, see <a href="http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cloudformation-limits.html" target="_blank" rel="noopener">AWS CloudFormation quotas</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_troubleshooting">Troubleshooting</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>Q.</strong> Ground Truth labeling job fails to launch.</p>
+</div>
+<div class="paragraph">
+<p><strong>A.</strong> This can be caused by a failed Lambda function. Open the <a href="https://console.aws.amazon.com/cloudwatch/" target="_blank" rel="noopener">CloudWatch console</a> to review your CloudWatch logs for AWS Lambda. Also, verify that the bulk patient data input file is formatted correctly. For more information, see <a href="#_data_schema_requirements">Data schema requirements</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_customer_responsibility">Customer responsibility</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After you successfully deploy this Quick Start, confirm that your resources and services are updated and configured — including any required patches — to meet your security and other needs. For more information, see the <a href="https://aws.amazon.com/compliance/shared-responsibility-model/" target="_blank" rel="noopener">AWS Shared Responsibility Model</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_parameter_reference">Parameter reference</h2>
+<div class="sectionbody">
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -1511,14 +1548,13 @@ If you’re deploying IPAC-CLABSI into an existing VPC, make sure that your VPC 
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Unless you are customizing the Quick Start templates for your own deployment projects, keep the default settings for the parameters <strong>Quick Start S3 bucket name</strong>, <strong>Quick Start S3 bucket Region</strong>, and <strong>Quick Start S3 key prefix</strong>. Changing these settings automatically updates code references to point to a new Quick Start location. For more information, see the <a href="https://aws-quickstart.github.io/option1.html" target="_blank" rel="noopener">AWS Quick Start Contributor’s Guide</a>.
+Unless you are customizing the Quick Start templates for your own deployment projects, keep the default settings for the parameters labeled <strong>Quick Start S3 bucket name</strong>, <strong>Quick Start S3 bucket Region</strong>, and <strong>Quick Start S3 key prefix</strong>. Changing these parameter settings automatically updates code references to point to a new Quick Start location. For more information, see the <a href="https://aws-quickstart.github.io/option1.html" target="_blank" rel="noopener">AWS Quick Start Contributor’s Guide</a>.
 </td>
 </tr>
 </table>
 </div>
-</div>
 <div class="sect2">
-<h3 id="_parameters_for_deploying_into_a_new_vpc">Parameters for deploying into a new VPC</h3>
+<h3 id="_launch_into_a_new_vpc">Launch into a new VPC</h3>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 1. Pipeline parameters</caption>
 <colgroup>
@@ -1535,22 +1571,22 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Which pre-existing CodeCommit repository this pipeline should monitor?
+<td class="tableblock halign-left valign-top"><p class="tableblock">Repository name
 (<code>RepositoryName</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>phc-ipac-clabsi</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The CodeCommit repository name where the source code is located.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Which branch CodePipeline should monitor for new commits?
+<td class="tableblock halign-left valign-top"><p class="tableblock">Repository branch
 (<code>RepositoryBranchName</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>main</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Repository branch to use.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Repository branch where the source code is located.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">What is the naming suffix for this deployment?
+<td class="tableblock halign-left valign-top"><p class="tableblock">Deployment naming suffix
 (<code>Suffix</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>-7</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Suffix value for the file that triggers pre-process lambda.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Suffix of the file that invokes the pre-processing AWS Lambda function.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1570,22 +1606,22 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">How should this application be called?
+<td class="tableblock halign-left valign-top"><p class="tableblock">Application name
 (<code>ApplicationName</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>phc-ipac-clabsi</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Application name.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">What is the compute environment for this application, including environmental variables?
+<td class="tableblock halign-left valign-top"><p class="tableblock">Compute environment
 (<code>Environment</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>dev</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Environment variables that are accessible from function code during execution.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Landingzone bucket name
+<td class="tableblock halign-left valign-top"><p class="tableblock">Landing zone bucket name
 (<code>LandingBucketName</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The name of the S3 bucket for the files landing zone. If you leave this parameter blank, an S3 bucket will be created.'</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The name of the S3 bucket for the files landing zone. If you leave this parameter blank, an S3 bucket will be created.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Processing bucket name
@@ -1629,7 +1665,7 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 <td class="tableblock halign-left valign-top"><p class="tableblock">Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Lambda zips bucket name
+<td class="tableblock halign-left valign-top"><p class="tableblock">AWS Lambda .zip files bucket name
 (<code>LambdaZipsBucketName</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">[OPTIONAL] The name of the S3 bucket where the Lambda zip files should be placed. If you leave this parameter blank, an S3 bucket will be created.</p></td>
@@ -1652,382 +1688,25 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Cognito User Pool
+<td class="tableblock halign-left valign-top"><p class="tableblock">AWS Cognito user pool
 (<code>CognitoUserPool</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">[Optional]Cognito User pool to use with Sagemaker Workteams. If one is not provided this will be created for you.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Cognito User pool to use with Sagemaker Workteams. If one is not provided this will be created for you.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Cognito Client Id
+<td class="tableblock halign-left valign-top"><p class="tableblock">AWS Cognito client ID
 (<code>CognitoClientId</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">[Optional]Cognito Client ID to use with Sagemaker Workteams. If one is not provided this will be created for you.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Cognito Client ID to use with Sagemaker Workteams. If one is not provided this will be created for you.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Cognito User Group
+<td class="tableblock halign-left valign-top"><p class="tableblock">AWS Cognito user group
 (<code>CognitoUserGroup</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">[Optional]Cognito User Group to use with Sagemaker Workteams. If one is not provided this will be created for you.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Cognito User Group to use with Sagemaker Workteams. If one is not provided this will be created for you.</p></td>
 </tr>
 </tbody>
 </table>
-<div class="olist arabic">
-<ol class="arabic" start="5">
-<li>
-<p>On the <strong>Configure stack options</strong> page, you can <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-resource-tags.html" target="_blank" rel="noopener">specify tags</a> (key-value pairs) for resources in your stack and <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-add-tags.html" target="_blank" rel="noopener">set advanced options</a>. When you’re finished, choose <strong>Next</strong>.</p>
-</li>
-<li>
-<p>On the <strong>Review</strong> page, review and confirm the template settings. Under <strong>Capabilities</strong>, select the two check boxes to acknowledge that the template creates IAM resources and might require the ability to automatically expand macros.</p>
-</li>
-<li>
-<p>Choose <strong>Create stack</strong> to deploy the stack.</p>
-</li>
-<li>
-<p>Monitor the status of the stack. When the status is <strong>CREATE_COMPLETE</strong>, the IPAC-CLABSI deployment is ready.</p>
-</li>
-<li>
-<p>Use the values displayed in the <strong>Outputs</strong> tab for the stack, as shown in <a href="#cfn_outputs">Figure 3</a>, to view the created resources.</p>
-</li>
-</ol>
-</div>
-<div id="cfn_outputs" class="imageblock">
-<div class="content">
-<a class="image" href="images/cfn_outputs.png"><img src="images/cfn_outputs.png" alt="cfn_outputs" width="100%" height="100%"></a>
-</div>
-<div class="title">Figure 3. IPAC-CLABSI outputs after successful deployment</div>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_test_the_deployment">Test the deployment</h2>
-<div class="sectionbody">
-<div class="ulist">
-<ul>
-<li>
-<p>uploading files/anonymous_patients.xlxs to s3, it is an excell file with fake patient data that can simulate the label job work flow. Upon successfull testing 1abel jobs will be created in AWS SageMaker GroundTruth.</p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_post_deployment_steps">Post-deployment steps</h2>
-<div class="sectionbody">
-<div class="ulist">
-<ul>
-<li>
-<p>setup private workforce in sagemaker</p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_best_practices_for_using_ipac_clabsi_on_aws">Best practices for using IPAC-CLABSI on AWS</h2>
-<div class="sectionbody">
-<div class="ulist">
-<ul>
-<li>
-<p>Submitting jobs will save your progress with "require furthure review" flag save your progress and wont escelate to the next reviewer</p>
-</li>
-<li>
-<p>Leave comments and explain work</p>
-</li>
-<li>
-<p>Don&#8217;t leave job sessions open for long periods, each job session has a maximum time limit.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>_Add any best practices for using the software.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_security">Security</h2>
-<div class="sectionbody">
-<div class="ulist">
-<ul>
-<li>
-<p><a href="https://aws.amazon.com/architecture/security-identity-compliance/?cards-all.sort-by=item.additionalFields.sortDate&amp;cards-all.sort-order=desc">Security Best Practices by AWS</a></p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_other_useful_information">Other useful information</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p><em>Add any other details that will help the customer use the software on AWS.</em></p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_faq">FAQ</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p><strong>Q.</strong> I encountered a <strong>CREATE_FAILED</strong> error when I launched the Quick Start.</p>
-</div>
-<div class="paragraph">
-<p><strong>A.</strong> If AWS CloudFormation fails to create the stack, we recommend that you relaunch the template with <strong>Rollback on failure</strong> set to <strong>No</strong>. (This setting is under <strong>Advanced</strong> in the AWS CloudFormation console, <strong>Options</strong> page.) With this setting, the stack’s state is retained and the instance is left running, so you can troubleshoot the issue. (For Windows, look at the log files in %ProgramFiles%\Amazon\EC2ConfigService and C:\cfn\log.)</p>
-</div>
-<div class="paragraph">
-<p><strong>Important:</strong> When you set <strong>Rollback on failure</strong> to <strong>No</strong>, you continue to incur AWS charges for this stack. Please make sure to delete the stack when you finish troubleshooting.
-For additional information, see <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/troubleshooting.html">Troubleshooting AWS CloudFormation</a> on the AWS website.</p>
-</div>
-<div class="paragraph">
-<p><strong>Q.</strong> I encountered a size limitation error when I deployed the AWS CloudFormation templates.</p>
-</div>
-<div class="paragraph">
-<p><strong>A.</strong> We recommend that you launch the Quick Start templates from the links in this guide or from another S3 bucket. If you deploy the templates from a local copy on your computer or from a location other than an S3 bucket, you might encounter template size limitations. For more information about AWS CloudFormation quotas, see the <a href="http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cloudformation-limits.html">AWS documentation</a>.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_troubleshooting">Troubleshooting</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p><strong>Q.</strong> GroundTruth Label job fails to lunch.</p>
-</div>
-<div class="paragraph">
-<p><strong>A.</strong> This Error could be due to Lambda Functions failing, this can be observed by accessing the cloudwatch and looking at the event.</p>
-</div>
-<div class="paragraph">
-<p>Reasons for failure could be due to input file not having the correct column names, and data, or date format.</p>
-</div>
-<div class="paragraph">
-<p>We expect an excell file with 3 sheets in the Landing-Zone bucket to start the process:</p>
-</div>
-<div class="paragraph">
-<p><strong>.</strong> The first sheet need these column names and their expected datatype.</p>
-</div>
-<div class="paragraph">
-<p>int64:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>encntr_num</p>
-</li>
-<li>
-<p>mrn</p>
-</li>
-<li>
-<p>encntr_id</p>
-</li>
-<li>
-<p>collection_date_id</p>
-</li>
-<li>
-<p>loc_bed_desc_src_at_collection</p>
-</li>
-<li>
-<p>transfer_in_to_collect</p>
-</li>
-<li>
-<p>transfer_out_to_collect</p>
-</li>
-<li>
-<p>ce_dynamic_label_id</p>
-</li>
-<li>
-<p>line_tube_drain_insertion_seq</p>
-</li>
-<li>
-<p>line_insert_to_collection</p>
-</li>
-<li>
-<p>birth_date_id</p>
-</li>
-<li>
-<p>line_remove_to_collect</p>
-</li>
-<li>
-<p>last_temperature_result_pre_collection</p>
-</li>
-<li>
-<p>bc_phn</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>String:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>nursing_unit_short_desc</p>
-</li>
-<li>
-<p>facility_name_src</p>
-</li>
-<li>
-<p>encntr_type_desc_src_at_collection</p>
-</li>
-<li>
-<p>clinical_event_code_desc_src</p>
-</li>
-<li>
-<p>loc_room_desc_src_at_collection</p>
-</li>
-<li>
-<p>disch_disp_desc_src</p>
-</li>
-<li>
-<p>lab_result</p>
-</li>
-<li>
-<p>med_service_desc_src_at_collection</p>
-</li>
-<li>
-<p>nursing_unit_desc_at_collection</p>
-</li>
-<li>
-<p>nursing_unit_short_desc_at_collection</p>
-</li>
-<li>
-<p>organism</p>
-</li>
-<li>
-<p>result_interpretation_desc_src</p>
-</li>
-<li>
-<p>specimen_type_desc_src</p>
-</li>
-<li>
-<p>doc_set_name_result</p>
-</li>
-<li>
-<p>first_catheter_type_result</p>
-</li>
-<li>
-<p>first_site_result</p>
-</li>
-<li>
-<p>name_last</p>
-</li>
-<li>
-<p>name_first</p>
-</li>
-<li>
-<p>gender_desc_src</p>
-</li>
-<li>
-<p>home_addr_patient_postal_code_forward_sortation_area</p>
-</li>
-<li>
-<p>first_dressing_type_result</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>DateTime Columns (YYYY/MM/DD/) :</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>admit_dt_tm</p>
-</li>
-<li>
-<p>disch_dt_tm</p>
-</li>
-<li>
-<p>collection_dt_tm</p>
-</li>
-<li>
-<p>beg_effective_dt_tm</p>
-</li>
-<li>
-<p>end_effective_dt_tm</p>
-</li>
-<li>
-<p>first_activity_start_dt_tm</p>
-</li>
-<li>
-<p>last_activity_end_dt_tm</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p><strong>.</strong> The second sheet should have these columns:</p>
-</div>
-<div class="paragraph">
-<p>int64:
--  encntr_num
--  mrn
--  encntr_id
--  result_val
-str:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>accession_nbr</p>
-</li>
-<li>
-<p>collection_dt_tm</p>
-</li>
-<li>
-<p>event_end_dt_tm</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p><strong>.</strong> The third sheet should have these columns:</p>
-</div>
-<div class="paragraph">
-<p>int64:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>encntr_num</p>
-</li>
-<li>
-<p>encntr_id</p>
-</li>
-<li>
-<p>mrn
-str:</p>
-</li>
-<li>
-<p>accession_nbr</p>
-</li>
-<li>
-<p>organism_desc_src</p>
-</li>
-<li>
-<p>event_end_dt_tm</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p><strong>.</strong> The third sheet should have these columns:</p>
-</div>
-<div class="paragraph">
-<p>int64:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>encntr_num</p>
-</li>
-<li>
-<p>encntr_id</p>
-</li>
-<li>
-<p>mrn
-str:</p>
-</li>
-<li>
-<p>accession_nbr</p>
-</li>
-<li>
-<p>organism_desc_src</p>
-</li>
-</ul>
 </div>
 </div>
 </div>
@@ -2077,3 +1756,10 @@ and to share your customizations with others.</p>
 </p>
 </body>
 </html>
+<!--
+repo commit:
+b9f395df62100d2feb0783e226d33b73e5a6198d
+
+submodule config:
+ 81ea0b675a571b662377f9de556a26cce8dad05f docs/boilerplate (heads/main)
+-->

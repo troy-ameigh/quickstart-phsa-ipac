@@ -1,27 +1,29 @@
 // Add steps as necessary for accessing the software, post-configuration, and testing. Don’t include full usage instructions for your software, but add links to your product documentation for that information.
 //Should any sections not be applicable, remove them
 
-== Test the deployment
+=== Test the deployment
 // If steps are required to test the deployment, add them here. If not, remove the heading
--  uploading files/anonymous_patients.xlxs to s3, it is an excell file with fake patient data that can simulate the label job work flow. Upon successfull testing 1abel jobs will be created in AWS SageMaker GroundTruth.
+* Upload assets/anonymous_patients.xlsx to the input data S3 bucket to simulate the ingestion of patient data into the system. Labeling jobs should be created in Ground Truth.
+* Complete a review and confirm that the job is relaunched in Ground Truth for labeling by a second reviewer.
+* Submit a job with the label `Require further review - revisit patient later`. Confirm that the job launches with same number of reviewers required.
+* Confirm that created jobs are recorded in the time sheet.* 
 
-== Post-deployment steps
+For more information, see https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_HumanTaskConfig.html#:~:text=TaskTimeLimitInSeconds[HumanTaskConfig].
+
+=== Post-deployment steps
 // If post-deployment steps are required, add them here. If not, remove the heading
--  setup private workforce in sagemaker 
+Create a private workforce in your Amazon SageMaker deployment. For more information, see https://docs.aws.amazon.com/sagemaker/latest/dg/sms-workforce-create-private-console.html[Create a Private Workforce (Amazon SageMaker Console)]. 
 
-== Best practices for using {partner-product-short-name} on AWS
+=== Best practices for reviewers using {partner-product-short-name} on AWS
 // Provide post-deployment best practices for using the technology on AWS, including considerations such as migrating data, backups, ensuring high performance, high availability, etc. Link to software documentation for detailed information.
--   Submitting jobs will save your progress with "require furthure review" flag save your progress and wont escelate to the next reviewer
--   Leave comments and explain work
--   Don't leave job sessions open for long periods, each job session has a maximum time limit.
+- If you are not finished reviewing a case but want to save your work and resume later, submit the job with the label `Require further review - revisit patient later`.
+- Enter your reasons behind a decision in the *Comment* field.
+- You can leave comments on Infection Window Period (IWP) plots (`comment_on_iwp`) and on pathogens (`comment_on_pathogen`).
 
-_Add any best practices for using the software.
-
-== Security
+=== Security
 // Provide post-deployment best practices for using the technology on AWS, including considerations such as migrating data, backups, ensuring high performance, high availability, etc. Link to software documentation for detailed information.
--  https://aws.amazon.com/architecture/security-identity-compliance/?cards-all.sort-by=item.additionalFields.sortDate&cards-all.sort-order=desc[Security Best Practices by AWS]
+* https://aws.amazon.com/architecture/security-identity-compliance/?cards-all.sort-by=item.additionalFields.sortDate&cards-all.sort-order=desc[Security Best Practices by AWS]
 
-== Other useful information
+// == Other useful information
 //Provide any other information of interest to users, especially focusing on areas where AWS or cloud usage differs from on-premises usage.
 
-_Add any other details that will help the customer use the software on AWS._

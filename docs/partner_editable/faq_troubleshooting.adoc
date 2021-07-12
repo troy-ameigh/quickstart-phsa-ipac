@@ -4,116 +4,20 @@
 
 *Q.* I encountered a *CREATE_FAILED* error when I launched the Quick Start.
 
-*A.* If AWS CloudFormation fails to create the stack, we recommend that you relaunch the template with *Rollback on failure* set to *No*. (This setting is under *Advanced* in the AWS CloudFormation console, *Options* page.) With this setting, the stack’s state is retained and the instance is left running, so you can troubleshoot the issue. (For Windows, look at the log files in %ProgramFiles%\Amazon\EC2ConfigService and C:\cfn\log.)
-// If you’re deploying on Linux instances, provide the location for log files on Linux, or omit this sentence.
+*A.* If AWS CloudFormation fails to create the stack, relaunch the template with *Rollback on failure* set to *Disabled*. This setting is under *Advanced* in the AWS CloudFormation console on the *Configure stack options* page. With this setting, the stack’s state is retained, and the instance keeps running so that you can troubleshoot the issue. (For Windows, look at the log files in `%ProgramFiles%\Amazon\EC2ConfigService` and `C:\cfn\log`.)
+// Customize this answer if needed. For example, if you’re deploying on Linux instances, either provide the location for log files on Linux or omit the final sentence. If the Quick Start has no EC2 instances, revise accordingly (something like "and the assets keep running").
 
-*Important:* When you set *Rollback on failure* to *No*, you continue to incur AWS charges for this stack. Please make sure to delete the stack when you finish troubleshooting.
-For additional information, see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/troubleshooting.html[Troubleshooting AWS CloudFormation] on the AWS website.
+WARNING: When you set *Rollback on failure* to *Disabled*, you continue to incur AWS charges for this stack. Delete the stack when you finish troubleshooting.
 
-*Q.* I encountered a size limitation error when I deployed the AWS CloudFormation templates.
+For more information, see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/troubleshooting.html[Troubleshooting AWS CloudFormation^].
 
-*A.* We recommend that you launch the Quick Start templates from the links in this guide or from another S3 bucket. If you deploy the templates from a local copy on your computer or from a location other than an S3 bucket, you might encounter template size limitations. For more information about AWS CloudFormation quotas, see the http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cloudformation-limits.html[AWS documentation].
+*Q.* I encountered a size-limitation error when I deployed the AWS CloudFormation templates.
+
+*A.* Launch the Quick Start templates from the links in this guide or from another S3 bucket. If you deploy the templates from a local copy on your computer or from a location other than an S3 bucket, you might encounter template-size limitations. For more information, see http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cloudformation-limits.html[AWS CloudFormation quotas^].
 
 
 == Troubleshooting
 
-*Q.* GroundTruth Label job fails to lunch. 
+*Q.* Ground Truth labeling job fails to launch. 
 
-*A.* This Error could be due to Lambda Functions failing, this can be observed by accessing the cloudwatch and looking at the event.
-
-Reasons for failure could be due to input file not having the correct column names, and data, or date format. 
-
-We expect an excell file with 3 sheets in the Landing-Zone bucket to start the process:
-
-*.* The first sheet need these column names and their expected datatype.
-
-int64: 
-
--  encntr_num
--  mrn
--  encntr_id
--  collection_date_id
--  loc_bed_desc_src_at_collection
--  transfer_in_to_collect
--  transfer_out_to_collect
--  ce_dynamic_label_id
--  line_tube_drain_insertion_seq
--  line_insert_to_collection
--  birth_date_id
--  line_remove_to_collect
--  last_temperature_result_pre_collection
--  bc_phn
-
-
-String: 
-
--  nursing_unit_short_desc
--  facility_name_src
--  encntr_type_desc_src_at_collection
--  clinical_event_code_desc_src
--  loc_room_desc_src_at_collection
--  disch_disp_desc_src
--  lab_result
--  med_service_desc_src_at_collection
--  nursing_unit_desc_at_collection
--  nursing_unit_short_desc_at_collection
--  organism
--  result_interpretation_desc_src
--  specimen_type_desc_src
--  doc_set_name_result
--  first_catheter_type_result
--  first_site_result
--  name_last
--  name_first
--  gender_desc_src
--  home_addr_patient_postal_code_forward_sortation_area
--  first_dressing_type_result
-
-
-DateTime Columns (YYYY/MM/DD/) : 
-
--  admit_dt_tm
--  disch_dt_tm
--  collection_dt_tm
--  beg_effective_dt_tm
--  end_effective_dt_tm
--  first_activity_start_dt_tm
--  last_activity_end_dt_tm
-
-*.* The second sheet should have these columns: 
- 
-int64: 
--  encntr_num
--  mrn
--  encntr_id
--  result_val
-str:
-
--  accession_nbr
--  collection_dt_tm
--  event_end_dt_tm
-
-*.* The third sheet should have these columns:
-
-int64:
-
--  encntr_num
--  encntr_id
--  mrn
-str:
-
--  accession_nbr
--  organism_desc_src
--  event_end_dt_tm
-
-*.* The third sheet should have these columns:
-
-int64:
-
--  encntr_num
--  encntr_id
--  mrn
-str:
-
--  accession_nbr
--  organism_desc_src
+*A.* This can be caused by a failed Lambda function. Open the https://console.aws.amazon.com/cloudwatch/[CloudWatch console^] to review your CloudWatch logs for AWS Lambda. Also, verify that the bulk patient data input file is formatted correctly. For more information, see link:#_data_schema_requirements[Data schema requirements].
